@@ -1,0 +1,24 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\private\\bagmanagement\\utils\\inv_bagstatics.cpp",
+        "ProvidedModule": "",
+        "PCH": "x:\\software\\epic games\\unreal projects\\beibaoxitong\\intermediate\\build\\win64\\x64\\beibaoxitongeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.valexpapi.cpp20.h.pch",
+        "Includes": [
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\bagsystem\\definitions.bagsystem.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\bagmanagement\\utils\\inv_bagstatics.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_bagstatics.generated.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\bagmanagement\\components\\inv_bagcomponent.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\bagmanagement\\fastarray\\inv_fastarray.h",
+            "x:\\games\\ue_5.6\\engine\\source\\runtime\\net\\core\\classes\\net\\serialization\\fastarrayserializer.h",
+            "x:\\games\\ue_5.6\\engine\\source\\runtime\\net\\core\\public\\net\\core\\misc\\guidreferences.h",
+            "x:\\games\\ue_5.6\\engine\\source\\runtime\\net\\core\\public\\net\\core\\pushmodel\\pushmodel.h",
+            "x:\\games\\ue_5.6\\engine\\source\\runtime\\net\\core\\public\\net\\core\\netcoremodule.h",
+            "x:\\games\\ue_5.6\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\netcore\\uht\\fastarrayserializer.generated.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_fastarray.generated.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_bagcomponent.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

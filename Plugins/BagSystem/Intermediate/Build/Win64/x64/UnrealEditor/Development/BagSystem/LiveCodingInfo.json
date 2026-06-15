@@ -1,0 +1,45 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.BagSystem.cpp.obj": [
+			"BagSystem.init.gen.cpp.obj",
+			"Inv_BagBase.gen.cpp.obj",
+			"Inv_BagComponent.gen.cpp.obj",
+			"Inv_BagGrid.gen.cpp.obj",
+			"Inv_BagItem.gen.cpp.obj",
+			"Inv_BagStatics.gen.cpp.obj",
+			"Inv_FastArray.gen.cpp.obj",
+			"Inv_GridSlot.gen.cpp.obj",
+			"Inv_GridTypes.gen.cpp.obj",
+			"Inv_Highlightable.gen.cpp.obj",
+			"Inv_HighlightableStaticMesh.gen.cpp.obj",
+			"Inv_HUDWidget.gen.cpp.obj",
+			"Inv_InfoMessage.gen.cpp.obj",
+			"Inv_ItemComponent.gen.cpp.obj",
+			"Inv_ItemManifest.gen.cpp.obj",
+			"Inv_PlayerController.gen.cpp.obj",
+			"Inv_SpatialBag.gen.cpp.obj",
+			"Inv_WidgetUtils.gen.cpp.obj",
+			"PerModuleInline.gen.cpp.obj",
+			"Inv_BagComponent.cpp.obj",
+			"Inv_FastArray.cpp.obj",
+			"Inv_BagStatics.cpp.obj",
+			"BagSystem.cpp.obj",
+			"Inv_Highlightable.cpp.obj",
+			"Inv_HighlightableStaticMesh.cpp.obj",
+			"Inv_ItemComponent.cpp.obj",
+			"Inv_BagItem.cpp.obj",
+			"Inv_ItemTags.cpp.obj",
+			"Inv_ItemManifest.cpp.obj",
+			"Inv_PlayerController.cpp.obj",
+			"Inv_GridTypes.cpp.obj",
+			"Inv_BagBase.cpp.obj",
+			"Inv_GridSlot.cpp.obj",
+			"Inv_BagGrid.cpp.obj",
+			"Inv_SpatialBag.cpp.obj",
+			"Inv_HUDWidget.cpp.obj",
+			"Inv_InfoMessage.cpp.obj",
+			"Inv_WidgetUtils.cpp.obj"
+		]
+	}
+}

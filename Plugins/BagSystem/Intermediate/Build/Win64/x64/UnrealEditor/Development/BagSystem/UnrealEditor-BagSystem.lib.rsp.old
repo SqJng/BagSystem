@@ -1,0 +1,30 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-BagSystem.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Intermediate/Build/Win64/x64/beibaoxitongEditor/Development/UnrealEd/SharedPCH.UnrealEd.Project.ValApi.ValExpApi.Cpp20.h.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Module.BagSystem.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/BagSystem.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_BagComponent.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_FastArray.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_BagStatics.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_Highlightable.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_HighlightableStaticMesh.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_BagItem.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_ItemComponent.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_ItemManifest.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_PlayerController.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_GridTypes.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_BagBase.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_GridSlot.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_BagGrid.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_SpatialBag.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_HUDWidget.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_InfoMessage.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Inv_WidgetUtils.cpp.obj"
+"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/Default.rc2.res"
+/OUT:"X:/Software/Epic Games/Unreal Projects/beibaoxitong/Plugins/BagSystem/Intermediate/Build/Win64/x64/UnrealEditor/Development/BagSystem/UnrealEditor-BagSystem.lib"
