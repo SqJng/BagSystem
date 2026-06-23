@@ -9,20 +9,12 @@
 
 struct FInv_ItemManifest;
 /**
- * 进入背包后的物品对象。
+ * 进入背包后的物品对象。仅持有清单
  *
- * 目前已经做了：
- * 继承 UObject，表示已经进入背包数据层的物品
- * 用 FInstancedStruct 保存 FInv_ItemManifest
- * SetItemManifest 可以把 Manifest 存进 ItemManifest
- * ItemManifest 已通过 DOREPLIFETIME 复制
+ * ItemManifest 物品清单，保存这个物品的具体数据，例如分类、图标、占格信息等
  *
- * 还没有负责：
- * 提供读取 Manifest 的公开接口
- * 物品名称、图标、数量、最大堆叠数等具体字段
- * 使用、丢弃、拆分、合并物品
- * 自己显示到 UI 格子
- * 自己处理拖拽
+ * GetItemManifest() 
+ * SetItemManifest() 
  */
 UCLASS()
 class BAGSYSTEM_API UInv_BagItem : public UObject//背包物品对象，进入背包后的物品数据层对象，应实现以下功能：保存物品数据（目前是 Manifest），提供接口给 UI 刷新显示，处理使用/丢弃/拖拽等交互
@@ -40,6 +32,15 @@ private:
 	UPROPERTY(VisibleAnywhere, meta = (BaseStruct = "/Script/BagSystem.Inv_ItemManifest"), Replicated)//插件名字.结构体名字
 	FInstancedStruct ItemManifest;//在AddEntry(UInv_ItemComponent)时通过物品清单告诉BS放进去的Item对应什么BagItem。
 };
+
+template <typename FragmentType>
+const FragmentType* GetFragment(const UInv_BagItem* Item, const FGameplayTag& Tag)//这里的逻辑是：外界传入一个物品和一个标签，想要拿到这个物品里那个标签对应的片段数据。为什么要传标签？因为一个物品可能有多个同类型的片段，标签可以区分它们
+{
+	if (!IsValid(Item)) return nullptr;
+
+	const FInv_ItemManifest& Manifest = Item->GetItemManifest();
+	return Manifest.GetFragmentOfTypeWithTag<FragmentType>(Tag);
+}
 
 
 

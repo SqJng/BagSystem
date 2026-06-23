@@ -17,7 +17,7 @@
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
 // ********** Begin ScriptStruct FInv_ItemManifest *************************************************
-#define FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Manifest_Inv_ItemManifest_h_30_GENERATED_BODY \
+#define FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Manifest_Inv_ItemManifest_h_27_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FInv_ItemManifest_Statics; \
 	static class UScriptStruct* StaticStruct();
 

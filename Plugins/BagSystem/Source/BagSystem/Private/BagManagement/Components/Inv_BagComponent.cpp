@@ -49,8 +49,8 @@ void UInv_BagComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent
 
 void UInv_BagComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount)//
 {
-	UInv_BagItem* NewItem = BagList.AddEntry(ItemComponent);
-
+	UInv_BagItem* NewItem = BagList.AddEntry(ItemComponent);//服务器添加
+	//接着广播给客户端添加
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
 	{
 		OnItemAdded.Broadcast(NewItem);

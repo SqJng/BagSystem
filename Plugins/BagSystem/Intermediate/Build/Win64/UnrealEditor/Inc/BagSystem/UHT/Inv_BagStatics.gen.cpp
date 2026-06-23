@@ -15,6 +15,8 @@ void EmptyLinkFunctionForGeneratedCodeInv_BagStatics() {}
 BAGSYSTEM_API UClass* Z_Construct_UClass_UInv_BagComponent_NoRegister();
 BAGSYSTEM_API UClass* Z_Construct_UClass_UInv_BagStatics();
 BAGSYSTEM_API UClass* Z_Construct_UClass_UInv_BagStatics_NoRegister();
+BAGSYSTEM_API UClass* Z_Construct_UClass_UInv_ItemComponent_NoRegister();
+BAGSYSTEM_API UEnum* Z_Construct_UEnum_BagSystem_EInv_ItemCategory();
 ENGINE_API UClass* Z_Construct_UClass_APlayerController_NoRegister();
 ENGINE_API UClass* Z_Construct_UClass_UBlueprintFunctionLibrary();
 UPackage* Z_Construct_UPackage__Script_BagSystem();
@@ -73,12 +75,66 @@ DEFINE_FUNCTION(UInv_BagStatics::execGetBagComponent)
 }
 // ********** End Class UInv_BagStatics Function GetBagComponent ***********************************
 
+// ********** Begin Class UInv_BagStatics Function GetItemCategoryFromItemComp *********************
+struct Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics
+{
+	struct Inv_BagStatics_eventGetItemCategoryFromItemComp_Parms
+	{
+		UInv_ItemComponent* ItemComp;
+		EInv_ItemCategory ReturnValue;
+	};
+#if WITH_METADATA
+	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+		{ "Category", "Inventory" },
+		{ "ModuleRelativePath", "Public/BagManagement/Utils/Inv_BagStatics.h" },
+	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_ItemComp_MetaData[] = {
+		{ "EditInline", "true" },
+	};
+#endif // WITH_METADATA
+	static const UECodeGen_Private::FObjectPropertyParams NewProp_ItemComp;
+	static const UECodeGen_Private::FBytePropertyParams NewProp_ReturnValue_Underlying;
+	static const UECodeGen_Private::FEnumPropertyParams NewProp_ReturnValue;
+	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+	static const UECodeGen_Private::FFunctionParams FuncParams;
+};
+const UECodeGen_Private::FObjectPropertyParams Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::NewProp_ItemComp = { "ItemComp", nullptr, (EPropertyFlags)0x0010000000080080, UECodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(Inv_BagStatics_eventGetItemCategoryFromItemComp_Parms, ItemComp), Z_Construct_UClass_UInv_ItemComponent_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_ItemComp_MetaData), NewProp_ItemComp_MetaData) };
+const UECodeGen_Private::FBytePropertyParams Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::NewProp_ReturnValue_Underlying = { "UnderlyingType", nullptr, (EPropertyFlags)0x0000000000000000, UECodeGen_Private::EPropertyGenFlags::Byte, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, 0, nullptr, METADATA_PARAMS(0, nullptr) };
+const UECodeGen_Private::FEnumPropertyParams Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UECodeGen_Private::EPropertyGenFlags::Enum, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(Inv_BagStatics_eventGetItemCategoryFromItemComp_Parms, ReturnValue), Z_Construct_UEnum_BagSystem_EInv_ItemCategory, METADATA_PARAMS(0, nullptr) }; // 958983591
+const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::NewProp_ItemComp,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::NewProp_ReturnValue_Underlying,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::NewProp_ReturnValue,
+};
+static_assert(UE_ARRAY_COUNT(Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::PropPointers) < 2048);
+const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::FuncParams = { { (UObject*(*)())Z_Construct_UClass_UInv_BagStatics, nullptr, "GetItemCategoryFromItemComp", Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::PropPointers, UE_ARRAY_COUNT(Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::PropPointers), sizeof(Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::Inv_BagStatics_eventGetItemCategoryFromItemComp_Parms), RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x04022401, 0, 0, METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::Function_MetaDataParams), Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::Function_MetaDataParams)},  };
+static_assert(sizeof(Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::Inv_BagStatics_eventGetItemCategoryFromItemComp_Parms) < MAX_uint16);
+UFunction* Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp()
+{
+	static UFunction* ReturnFunction = nullptr;
+	if (!ReturnFunction)
+	{
+		UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp_Statics::FuncParams);
+	}
+	return ReturnFunction;
+}
+DEFINE_FUNCTION(UInv_BagStatics::execGetItemCategoryFromItemComp)
+{
+	P_GET_OBJECT(UInv_ItemComponent,Z_Param_ItemComp);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(EInv_ItemCategory*)Z_Param__Result=UInv_BagStatics::GetItemCategoryFromItemComp(Z_Param_ItemComp);
+	P_NATIVE_END;
+}
+// ********** End Class UInv_BagStatics Function GetItemCategoryFromItemComp ***********************
+
 // ********** Begin Class UInv_BagStatics **********************************************************
 void UInv_BagStatics::StaticRegisterNativesUInv_BagStatics()
 {
 	UClass* Class = UInv_BagStatics::StaticClass();
 	static const FNameNativePtrPair Funcs[] = {
 		{ "GetBagComponent", &UInv_BagStatics::execGetBagComponent },
+		{ "GetItemCategoryFromItemComp", &UInv_BagStatics::execGetItemCategoryFromItemComp },
 	};
 	FNativeFunctionRegistrar::RegisterFunctions(Class, Funcs, UE_ARRAY_COUNT(Funcs));
 }
@@ -128,6 +184,7 @@ struct Z_Construct_UClass_UInv_BagStatics_Statics
 	static UObject* (*const DependentSingletons[])();
 	static constexpr FClassFunctionLinkInfo FuncInfo[] = {
 		{ &Z_Construct_UFunction_UInv_BagStatics_GetBagComponent, "GetBagComponent" }, // 3788812406
+		{ &Z_Construct_UFunction_UInv_BagStatics_GetItemCategoryFromItemComp, "GetItemCategoryFromItemComp" }, // 575061583
 	};
 	static_assert(UE_ARRAY_COUNT(FuncInfo) < 2048);
 	static constexpr FCppClassTypeInfoStatic StaticCppClassTypeInfo = {
@@ -172,10 +229,10 @@ UInv_BagStatics::~UInv_BagStatics() {}
 struct Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_BagManagement_Utils_Inv_BagStatics_h__Script_BagSystem_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
-		{ Z_Construct_UClass_UInv_BagStatics, UInv_BagStatics::StaticClass, TEXT("UInv_BagStatics"), &Z_Registration_Info_UClass_UInv_BagStatics, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UInv_BagStatics), 2586740925U) },
+		{ Z_Construct_UClass_UInv_BagStatics, UInv_BagStatics::StaticClass, TEXT("UInv_BagStatics"), &Z_Registration_Info_UClass_UInv_BagStatics, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UInv_BagStatics), 2484425996U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_BagManagement_Utils_Inv_BagStatics_h__Script_BagSystem_1310628323(TEXT("/Script/BagSystem"),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_BagManagement_Utils_Inv_BagStatics_h__Script_BagSystem_1109903680(TEXT("/Script/BagSystem"),
 	Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_BagManagement_Utils_Inv_BagStatics_h__Script_BagSystem_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_BagManagement_Utils_Inv_BagStatics_h__Script_BagSystem_Statics::ClassInfo),
 	nullptr, 0,
 	nullptr, 0);

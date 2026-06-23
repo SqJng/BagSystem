@@ -3,9 +3,12 @@
 
 #include "Widgets/Bag/Spatial/Inv_SpatialBag.h"
 
+#include "BagManagement/Utils/Inv_BagStatics.h"
 #include "Components/Button.h"
+#include "BagSystem.h"
 #include "Components/WidgetSwitcher.h"
 #include "Widgets/Bag/Spatial/Inv_BagGrid.h"
+
 
  void UInv_SpatialBag::NativeOnInitialized()
  {
@@ -20,9 +23,18 @@
 
  FInv_SlotAvailabilityResult UInv_SpatialBag::HasRoomForItem(UInv_ItemComponent* ItemComponent) const
  {
- 	FInv_SlotAvailabilityResult Result;
- 	Result.TotalRoomToFill = 1;
- 	return Result;
+ 	switch (UInv_BagStatics::GetItemCategoryFromItemComp(ItemComponent))
+ 	{
+ 	case EInv_ItemCategory::Equippable:
+ 		return Grid_Equippables->HasRoomForItem(ItemComponent);
+ 	case EInv_ItemCategory::Consumable:
+ 		return Grid_Consumables->HasRoomForItem(ItemComponent);
+ 	case EInv_ItemCategory::Craftable:
+ 		return Grid_Craftables->HasRoomForItem(ItemComponent);
+ 	default:
+ 		UE_LOG(BagSystem, Error, TEXT("物品没有匹配的类别."))
+ 		return FInv_SlotAvailabilityResult();
+ 	}
  }
 
  void UInv_SpatialBag::ShowEquippables()

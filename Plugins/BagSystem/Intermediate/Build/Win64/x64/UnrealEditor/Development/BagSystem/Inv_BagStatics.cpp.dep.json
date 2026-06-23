@@ -7,6 +7,10 @@
         "Includes": [
             "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\bagsystem\\definitions.bagsystem.h",
             "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\bagmanagement\\utils\\inv_bagstatics.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\types\\inv_gridtypes.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_gridtypes.generated.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\widgets\\utils\\inv_widgetutils.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_widgetutils.generated.h",
             "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_bagstatics.generated.h",
             "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\bagmanagement\\components\\inv_bagcomponent.h",
             "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\bagmanagement\\fastarray\\inv_fastarray.h",
@@ -16,7 +20,17 @@
             "x:\\games\\ue_5.6\\engine\\source\\runtime\\net\\core\\public\\net\\core\\netcoremodule.h",
             "x:\\games\\ue_5.6\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\netcore\\uht\\fastarrayserializer.generated.h",
             "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_fastarray.generated.h",
-            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_bagcomponent.generated.h"
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_bagcomponent.generated.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\items\\components\\inv_itemcomponent.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\items\\manifest\\inv_itemmanifest.h",
+            "x:\\games\\ue_5.6\\engine\\source\\runtime\\gameplaytags\\classes\\gameplaytagcontainer.h",
+            "x:\\games\\ue_5.6\\engine\\source\\runtime\\core\\public\\misc\\comparisonutility.h",
+            "x:\\games\\ue_5.6\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\gameplaytags\\uht\\gameplaytagcontainer.generated.h",
+            "x:\\games\\ue_5.6\\engine\\source\\runtime\\coreuobject\\public\\structutils\\instancedstruct.h",
+            "x:\\games\\ue_5.6\\engine\\source\\runtime\\coreuobject\\public\\structutils\\structutils.h",
+            "x:\\games\\ue_5.6\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\coreuobject\\uht\\instancedstruct.generated.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_itemmanifest.generated.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_itemcomponent.generated.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

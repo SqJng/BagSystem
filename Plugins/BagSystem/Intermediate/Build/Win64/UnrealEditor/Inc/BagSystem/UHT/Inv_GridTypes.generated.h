@@ -17,7 +17,7 @@
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
 // ********** Begin ScriptStruct FInv_SlotAvailability *********************************************
-#define FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Types_Inv_GridTypes_h_47_GENERATED_BODY \
+#define FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Types_Inv_GridTypes_h_43_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FInv_SlotAvailability_Statics; \
 	BAGSYSTEM_API static class UScriptStruct* StaticStruct();
 
@@ -26,7 +26,7 @@ struct FInv_SlotAvailability;
 // ********** End ScriptStruct FInv_SlotAvailability ***********************************************
 
 // ********** Begin ScriptStruct FInv_SlotAvailabilityResult ***************************************
-#define FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Types_Inv_GridTypes_h_75_GENERATED_BODY \
+#define FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Types_Inv_GridTypes_h_68_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FInv_SlotAvailabilityResult_Statics; \
 	BAGSYSTEM_API static class UScriptStruct* StaticStruct();
 

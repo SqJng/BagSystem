@@ -82,7 +82,13 @@ struct Z_Construct_UClass_UInv_ItemComponent_Statics
 	};
 	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_PickupMessage_MetaData[] = {
 		{ "Category", "Inventory" },
+#if !UE_BUILD_SHIPPING
+		{ "Comment", "//\xe6\xb7\xbb\xe5\x8a\xa0\xe7\x89\xa9\xe5\x93\x81\xe9\x80\xbb\xe8\xbe\x91\xe4\xb8\xad\xef\xbc\x8c\xe5\x9c\xa8\xe5\xbf\xab\xe9\x80\x9f\xe6\x95\xb0\xe7\xbb\x84\xe7\x9a\x84 AddEntry(UInv_ItemComponent) \xe9\x87\x8c\xe9\x80\x9a\xe8\xbf\x87 ItemComponent->GetItemManifest() \xe5\x88\x9d\xe5\xa7\x8b\xe5\x8c\x96 BagItem \xe7\x9a\x84 Manifest\n" },
+#endif
 		{ "ModuleRelativePath", "Public/Items/Components/Inv_ItemComponent.h" },
+#if !UE_BUILD_SHIPPING
+		{ "ToolTip", "\xe6\xb7\xbb\xe5\x8a\xa0\xe7\x89\xa9\xe5\x93\x81\xe9\x80\xbb\xe8\xbe\x91\xe4\xb8\xad\xef\xbc\x8c\xe5\x9c\xa8\xe5\xbf\xab\xe9\x80\x9f\xe6\x95\xb0\xe7\xbb\x84\xe7\x9a\x84 AddEntry(UInv_ItemComponent) \xe9\x87\x8c\xe9\x80\x9a\xe8\xbf\x87 ItemComponent->GetItemManifest() \xe5\x88\x9d\xe5\xa7\x8b\xe5\x8c\x96 BagItem \xe7\x9a\x84 Manifest" },
+#endif
 	};
 #endif // WITH_METADATA
 	static const UECodeGen_Private::FStructPropertyParams NewProp_ItemManifest;
@@ -94,7 +100,7 @@ struct Z_Construct_UClass_UInv_ItemComponent_Statics
 	};
 	static const UECodeGen_Private::FClassParams ClassParams;
 };
-const UECodeGen_Private::FStructPropertyParams Z_Construct_UClass_UInv_ItemComponent_Statics::NewProp_ItemManifest = { "ItemManifest", nullptr, (EPropertyFlags)0x0040000000000021, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(UInv_ItemComponent, ItemManifest), Z_Construct_UScriptStruct_FInv_ItemManifest, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_ItemManifest_MetaData), NewProp_ItemManifest_MetaData) }; // 3539942545
+const UECodeGen_Private::FStructPropertyParams Z_Construct_UClass_UInv_ItemComponent_Statics::NewProp_ItemManifest = { "ItemManifest", nullptr, (EPropertyFlags)0x0040000000000021, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(UInv_ItemComponent, ItemManifest), Z_Construct_UScriptStruct_FInv_ItemManifest, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_ItemManifest_MetaData), NewProp_ItemManifest_MetaData) }; // 3524201283
 const UECodeGen_Private::FStrPropertyParams Z_Construct_UClass_UInv_ItemComponent_Statics::NewProp_PickupMessage = { "PickupMessage", nullptr, (EPropertyFlags)0x0040000000000001, UECodeGen_Private::EPropertyGenFlags::Str, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(UInv_ItemComponent, PickupMessage), METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_PickupMessage_MetaData), NewProp_PickupMessage_MetaData) };
 const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UClass_UInv_ItemComponent_Statics::PropPointers[] = {
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UInv_ItemComponent_Statics::NewProp_ItemManifest,
@@ -146,10 +152,10 @@ UInv_ItemComponent::~UInv_ItemComponent() {}
 struct Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Components_Inv_ItemComponent_h__Script_BagSystem_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
-		{ Z_Construct_UClass_UInv_ItemComponent, UInv_ItemComponent::StaticClass, TEXT("UInv_ItemComponent"), &Z_Registration_Info_UClass_UInv_ItemComponent, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UInv_ItemComponent), 305133388U) },
+		{ Z_Construct_UClass_UInv_ItemComponent, UInv_ItemComponent::StaticClass, TEXT("UInv_ItemComponent"), &Z_Registration_Info_UClass_UInv_ItemComponent, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UInv_ItemComponent), 974800429U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Components_Inv_ItemComponent_h__Script_BagSystem_1289715731(TEXT("/Script/BagSystem"),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Components_Inv_ItemComponent_h__Script_BagSystem_1051782210(TEXT("/Script/BagSystem"),
 	Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Components_Inv_ItemComponent_h__Script_BagSystem_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Components_Inv_ItemComponent_h__Script_BagSystem_Statics::ClassInfo),
 	nullptr, 0,
 	nullptr, 0);

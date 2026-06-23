@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Types/Inv_GridTypes.h"
+#include "Widgets/Utils/Inv_WidgetUtils.h"
 #include "Inv_BagStatics.generated.h"
 
-class UInv_BagComponent;
+
 /**
  * 背包系统的静态工具函数库。
  *
@@ -30,4 +32,31 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static UInv_BagComponent* GetBagComponent(const APlayerController* PlayerController);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	static EInv_ItemCategory GetItemCategoryFromItemComp(UInv_ItemComponent* ItemComp);
+
+	template<typename T, typename FuncT>
+	static void ForEach2D(TArray<T>& Array, int32 Index, const FIntPoint& Range2D, int32 GridColumns, const FuncT& Function);
 };
+/**
+ *传入函数指针Function，遍历以Index为起点，Range2D为范围的格子，执行Function函数。Array是格子数组，GridColumns是网格列数，用来计算格子坐标和格子号
+ *
+ * 把BagItem的物品图标占用的格子都设置已占用
+ */
+template<typename T, typename FuncT>
+void UInv_BagStatics::ForEach2D(TArray<T>& Array, int32 Index, const FIntPoint& Range2D, int32 GridColumns, const FuncT& Function)
+{
+	for (int32 j = 0; j < Range2D.Y; ++j)
+	{
+		for (int32 i = 0; i < Range2D.X; ++i)
+		{
+			const FIntPoint Coordinates = UInv_WidgetUtils::GetPositionFromIndex(Index, GridColumns) + FIntPoint(i, j);
+			const int32 TileIndex = UInv_WidgetUtils::GetIndexFromPosition(Coordinates, GridColumns);
+			if (Array.IsValidIndex(TileIndex))
+			{
+				Function(Array[TileIndex]);
+			}
+		}
+	}
+}

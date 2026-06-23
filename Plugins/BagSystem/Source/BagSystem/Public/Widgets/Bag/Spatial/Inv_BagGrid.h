@@ -9,11 +9,16 @@
 #include "Inv_BagGrid.generated.h"
 
 
+struct FInv_ImageFragment;
+class UInv_SlottedItem;
+struct FInv_GridFragment;
+class UInv_ItemComponent;
+struct FInv_ItemManifest;
 class UInv_BagComponent;
 class UCanvasPanel;
 class UInv_GridSlot;
 /**
- * 单个分类页里的格子网格，例如装备页、消耗品页或材料页。
+ * 单个分类页里的格子网格，例如装备页、消耗品页或材料页里的格子集合。它负责根据行列数创建格子，判断物品能否放进这些格子，以及把物品显示在格子里。
  *
  * 目前已经做了：
  * 保存 ItemCategory，说明这个网格负责哪个分类
@@ -40,6 +45,7 @@ public:
 	
 	// 返回该网格负责显示的物品分类，例如装备、消耗品或材料。
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; }
+	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent);
 
 
 	UFUNCTION()
@@ -50,26 +56,52 @@ private:
 
 	// 按 Rows * Columns 创建所有格子，并把它们摆放到 CanvasPanel 上。
 	void ConstructGrid();
+	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_BagItem* Item);
+	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest);
 
-	// 当前网格对应的物品分类，可在蓝图里配置和读取。
+	//喜欢封装哈哈，AddItem里层层封装的函数，把物品添加到对应格子里
+	void AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_BagItem* NewItem);
+	void AddItemAtIndex(UInv_BagItem* Item, const int32 Index, const bool bStackable, const int32 StackAmount);
+	FVector2D GetDrawSize(const FInv_GridFragment* GridFragment) const;
+	void SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment) const;
+	UInv_SlottedItem* CreateSlottedItem(UInv_BagItem* Item,
+		const bool bStackable,
+		const int32 StackAmount,
+		const FInv_GridFragment* GridFragment,
+		const FInv_ImageFragment* ImageFragment,
+		const int32 Index);
+	void AddSlottedItemToCanvas(const int32 Index, const FInv_GridFragment* GridFragment, UInv_SlottedItem* SlottedItem) const;
+	
+
+	void UpdateGridSlots(UInv_BagItem* NewItem, const int32 Index, bool bStackableItem, const int32 StackAmount);
+	// 这个背包是装备还是消耗品还是材料背包
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"),  Category = "Inventory")
 	EInv_ItemCategory ItemCategory;
+	bool MatchesCategory(const UInv_BagItem* Item) const;
 
-	// 保存所有生成出来的格子控件，数组下标就是格子的 TileIndex。
-	UPROPERTY()
-	TArray<TObjectPtr<UInv_GridSlot>> GridSlots;
 
-	// 单个格子的控件类。编辑器中需要指定一个继承自 UInv_GridSlot 的 Widget Blueprint。
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	TSubclassOf<UInv_GridSlot> GridSlotClass;
-
-	// 绑定 UMG 蓝图中的 CanvasPanel，所有格子都会作为它的子控件添加进去。
+	
+	// 画布，主要是渲染格子GridSlot以及物品图标SlottedItem
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> CanvasPanel;
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")int32 Rows;
-	UPROPERTY(EditAnywhere, Category = "Inventory")int32 Columns;
-	UPROPERTY(EditAnywhere, Category = "Inventory")float TileSize;
+	// 格子数组
+	UPROPERTY()
+	TArray<TObjectPtr<UInv_GridSlot>> GridSlots;
 
-	bool MatchesCategory(const UInv_BagItem* Item) const;
+	// 格子模板，仅初始化格子时使用。 
+	UPROPERTY(EditAnywhere, Category = "Inventory")// 编辑器中需要指定一个继承自 UInv_GridSlot 的 Widget Blueprint。
+	TSubclassOf<UInv_GridSlot> GridSlotClass;
+	
+	//物品图标模板，决定新加入物品图标的样式。
+	UPROPERTY(EditAnywhere, Category = "Inventory")//编辑器中需要指定一个继承自 UInv_SlottedItem 的 Widget Blueprint。
+	TSubclassOf<UInv_SlottedItem> SlottedItemClass;
+	
+	UPROPERTY()
+	TMap<int32, TObjectPtr<UInv_SlottedItem>> SlottedItems;//<格子号, 物品图标>。以后查询格子里是什么物品就看这个数组。
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")int32 Rows;//行数
+	UPROPERTY(EditAnywhere, Category = "Inventory")int32 Columns;//列数
+	UPROPERTY(EditAnywhere, Category = "Inventory")float TileSize;//格子尺寸，单位是像素
+
 };

@@ -28,5 +28,6 @@ class BAGSYSTEM_API UInv_WidgetUtils : public UBlueprintFunctionLibrary
 public:
 
 	static int32 GetIndexFromPosition(const FIntPoint& Position, const int32 Columns);
-	
+	//01在右，10在下，返回格子坐标
+	static FIntPoint GetPositionFromIndex(const int32 Index, const int32 Columns);
 };
