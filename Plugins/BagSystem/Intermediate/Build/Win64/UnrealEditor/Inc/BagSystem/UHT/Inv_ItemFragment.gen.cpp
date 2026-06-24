@@ -99,11 +99,11 @@ struct Z_Construct_UScriptStruct_FInv_GridFragment_Statics
 	static constexpr UECodeGen_Private::FMetaDataPairParam Struct_MetaDataParams[] = {
 		{ "BlueprintType", "true" },
 #if !UE_BUILD_SHIPPING
-		{ "Comment", "//\xe4\xbb\xa5\xe5\xa4\x96\xe7\x89\xa9\xe5\x93\x81\xe6\xb8\x85\xe5\x8d\x95\xe7\x94\xa8\xe4\xba\x86""ExcludeBaseStruct\xef\xbc\x8c\xe6\x89\x80\xe4\xbb\xa5\xe6\x90\x9e\xe4\xb8\xaa\xe5\xad\x90\xe7\xbb\x93\xe6\x9e\x84\xe4\xbd\x93\xe6\x9d\xa5\xe7\xbc\x96\xe8\xbe\x91\xe6\xa0\xbc\xe5\xad\x90\xe4\xbf\xa1\xe6\x81\xaf\n//\xe7\x89\xa9\xe5\x93\x81\xe5\x8d\xa0\xe5\x87\xa0\xe4\xb8\xaa\xe6\xa0\xbc\xe5\xad\x90\xe3\x80\x81\xe6\xa0\xbc\xe5\xad\x90\xe9\x97\xb4\xe8\xb7\x9d\xe7\xad\x89\xe4\xbf\xa1\xe6\x81\xaf\n" },
+		{ "Comment", "//\xe7\x89\xa9\xe5\x93\x81\xe5\x8d\xa0\xe5\x87\xa0\xe4\xb9\x98\xe5\x87\xa0\xe4\xb8\xaa\xe6\xa0\xbc\xe5\xad\x90\xe3\x80\x81\xe6\xa0\xbc\xe5\xad\x90\xe9\x97\xb4\xe8\xb7\x9d\n" },
 #endif
 		{ "ModuleRelativePath", "Public/Items/Fragments/Inv_ItemFragment.h" },
 #if !UE_BUILD_SHIPPING
-		{ "ToolTip", "\xe4\xbb\xa5\xe5\xa4\x96\xe7\x89\xa9\xe5\x93\x81\xe6\xb8\x85\xe5\x8d\x95\xe7\x94\xa8\xe4\xba\x86""ExcludeBaseStruct\xef\xbc\x8c\xe6\x89\x80\xe4\xbb\xa5\xe6\x90\x9e\xe4\xb8\xaa\xe5\xad\x90\xe7\xbb\x93\xe6\x9e\x84\xe4\xbd\x93\xe6\x9d\xa5\xe7\xbc\x96\xe8\xbe\x91\xe6\xa0\xbc\xe5\xad\x90\xe4\xbf\xa1\xe6\x81\xaf\n\xe7\x89\xa9\xe5\x93\x81\xe5\x8d\xa0\xe5\x87\xa0\xe4\xb8\xaa\xe6\xa0\xbc\xe5\xad\x90\xe3\x80\x81\xe6\xa0\xbc\xe5\xad\x90\xe9\x97\xb4\xe8\xb7\x9d\xe7\xad\x89\xe4\xbf\xa1\xe6\x81\xaf" },
+		{ "ToolTip", "\xe7\x89\xa9\xe5\x93\x81\xe5\x8d\xa0\xe5\x87\xa0\xe4\xb9\x98\xe5\x87\xa0\xe4\xb8\xaa\xe6\xa0\xbc\xe5\xad\x90\xe3\x80\x81\xe6\xa0\xbc\xe5\xad\x90\xe9\x97\xb4\xe8\xb7\x9d" },
 #endif
 	};
 	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_GridSize_MetaData[] = {
@@ -315,12 +315,12 @@ struct Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxiton
 {
 	static constexpr FStructRegisterCompiledInInfo ScriptStructInfo[] = {
 		{ FInv_ItemFragment::StaticStruct, Z_Construct_UScriptStruct_FInv_ItemFragment_Statics::NewStructOps, TEXT("Inv_ItemFragment"), &Z_Registration_Info_UScriptStruct_FInv_ItemFragment, CONSTRUCT_RELOAD_VERSION_INFO(FStructReloadVersionInfo, sizeof(FInv_ItemFragment), 1267358907U) },
-		{ FInv_GridFragment::StaticStruct, Z_Construct_UScriptStruct_FInv_GridFragment_Statics::NewStructOps, TEXT("Inv_GridFragment"), &Z_Registration_Info_UScriptStruct_FInv_GridFragment, CONSTRUCT_RELOAD_VERSION_INFO(FStructReloadVersionInfo, sizeof(FInv_GridFragment), 3752038333U) },
+		{ FInv_GridFragment::StaticStruct, Z_Construct_UScriptStruct_FInv_GridFragment_Statics::NewStructOps, TEXT("Inv_GridFragment"), &Z_Registration_Info_UScriptStruct_FInv_GridFragment, CONSTRUCT_RELOAD_VERSION_INFO(FStructReloadVersionInfo, sizeof(FInv_GridFragment), 3040676851U) },
 		{ FInv_ImageFragment::StaticStruct, Z_Construct_UScriptStruct_FInv_ImageFragment_Statics::NewStructOps, TEXT("Inv_ImageFragment"), &Z_Registration_Info_UScriptStruct_FInv_ImageFragment, CONSTRUCT_RELOAD_VERSION_INFO(FStructReloadVersionInfo, sizeof(FInv_ImageFragment), 2419437633U) },
 		{ FInv_StackableFragment::StaticStruct, Z_Construct_UScriptStruct_FInv_StackableFragment_Statics::NewStructOps, TEXT("Inv_StackableFragment"), &Z_Registration_Info_UScriptStruct_FInv_StackableFragment, CONSTRUCT_RELOAD_VERSION_INFO(FStructReloadVersionInfo, sizeof(FInv_StackableFragment), 2694193601U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Fragments_Inv_ItemFragment_h__Script_BagSystem_14540839(TEXT("/Script/BagSystem"),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Fragments_Inv_ItemFragment_h__Script_BagSystem_1551254405(TEXT("/Script/BagSystem"),
 	nullptr, 0,
 	Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Fragments_Inv_ItemFragment_h__Script_BagSystem_Statics::ScriptStructInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Software_Epic_Games_Unreal_Projects_beibaoxitong_Plugins_BagSystem_Source_BagSystem_Public_Items_Fragments_Inv_ItemFragment_h__Script_BagSystem_Statics::ScriptStructInfo),
 	nullptr, 0);

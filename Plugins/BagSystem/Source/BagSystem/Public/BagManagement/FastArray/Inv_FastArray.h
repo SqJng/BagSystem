@@ -5,6 +5,7 @@
 
 #include "Inv_FastArray.generated.h"
 
+struct FGameplayTag;
 class UInv_ItemComponent;
 class UInv_BagComponent;
 class UInv_BagItem;
@@ -63,6 +64,7 @@ struct FInv_BagFastArray : public FFastArraySerializer
 	UInv_BagItem* AddEntry(UInv_ItemComponent* ItemComponent);
 	UInv_BagItem* AddEntry(UInv_BagItem* Item);
 	void RemoveEntry(UInv_BagItem* Item);
+	UInv_BagItem* FindFirstItemByType(const FGameplayTag& ItemType);
 
 private:
 	friend UInv_BagComponent;

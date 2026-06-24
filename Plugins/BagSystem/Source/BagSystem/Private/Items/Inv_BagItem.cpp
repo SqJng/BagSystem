@@ -2,6 +2,8 @@
 
 
 #include "Items/Inv_BagItem.h"
+
+#include "Items/Fragments/Inv_ItemFragment.h"
 #include "Net/UnrealNetwork.h"
 
 void UInv_BagItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -15,4 +17,10 @@ void UInv_BagItem::SetItemManifest(const FInv_ItemManifest& Manifest)//在ItemMa
 {
 	ItemManifest = FInstancedStruct::Make<FInv_ItemManifest>(Manifest);
 	
+}
+
+bool UInv_BagItem::IsStackable() const
+{
+	const FInv_StackableFragment* Stackable = GetItemManifest().GetFragmentOfType<FInv_StackableFragment>();
+	return Stackable != nullptr;
 }

@@ -4,19 +4,7 @@
 
 class UInv_BagItem;
 /**
- * 背包物品分类。
- *
- * 目前已经做了：
- * 定义装备 Equippable
- * 定义消耗品 Consumable
- * 定义材料 Craftable
- * 定义空分类 None
- *
- * 还没有负责：
- * 分类显示名称
- * 分类图标
- * 分类页签顺序
- * 判断某个物品属于哪个分类
+ * 三类背包物品
  */
 UENUM(BlueprintType)
 enum class EInv_ItemCategory : uint8
@@ -45,14 +33,14 @@ struct FInv_SlotAvailability//格子结构
 	FInv_SlotAvailability() {}
 	FInv_SlotAvailability(int32 ItemIndex, int32 Room, bool bHasItem) : Index(ItemIndex), AmountToFill(Room), bItemAtIndex(bHasItem) {}
 
-	int32 Index{INDEX_NONE};//格子下标
+	int32 Index{INDEX_NONE};//格子下标，默认是INDEX_NONE，表示无效
 	int32 AmountToFill{0};//这个格子还能塞多少个当前物品
 	bool bItemAtIndex{false};//这个格子当前是否已经有物品
 };
 /**
- * 整个背包对“能不能放下这个物品”的回答
+ * 整个背包对“能不能放下这个物品”的回答，是一个结构体
  *
- * Item
+ * 弱指针指向Item
  *
  * TotalRoomToFill 背包里总共还能放下多少个当前物品
  *
@@ -71,7 +59,7 @@ struct FInv_SlotAvailabilityResult
 
 	TWeakObjectPtr<UInv_BagItem> Item;//弱指针指向Item
 	int32 TotalRoomToFill{0};//背包里总共还能放下多少个当前物品
-	int32 Remainder{0};//如果 TotalRoomToFill 不足以完全放下这个物品，那么还有多少个放不下了
-	bool bStackable{false};//默认不可堆叠
+	int32 Remainder{0};//如果全放进去，会有Remainder个放不下 
+	bool bStackable{false};//能不能堆叠
 	TArray<FInv_SlotAvailability> SlotAvailabilities;//单个格子的可用空间结果。
 };

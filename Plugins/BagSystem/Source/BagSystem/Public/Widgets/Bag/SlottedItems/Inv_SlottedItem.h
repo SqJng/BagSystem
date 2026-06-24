@@ -50,10 +50,10 @@ private:
 	TObjectPtr<UImage> Image_Icon;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> Text_StackCount;
+	TObjectPtr<UTextBlock> Text_StackCount;//角标数量
 
 	int32 GridIndex;//它放在哪个格子
-	FIntPoint GridDimensions;//它占几格
+	FIntPoint GridDimensions;//它占几列几行{列, 行}
 	TWeakObjectPtr<UInv_BagItem> BagItem;//它代表哪个背包物品
 	bool bIsStackable{false};
 };

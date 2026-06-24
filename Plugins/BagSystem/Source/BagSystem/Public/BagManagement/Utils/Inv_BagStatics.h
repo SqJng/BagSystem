@@ -50,12 +50,12 @@ void UInv_BagStatics::ForEach2D(TArray<T>& Array, int32 Index, const FIntPoint& 
 	for (int32 j = 0; j < Range2D.Y; ++j)
 	{
 		for (int32 i = 0; i < Range2D.X; ++i)
-		{
+		{//起始下标转二维坐标+j,i，再转回下标，拿到格子对象Array[TileIndex]，执行Function函数
 			const FIntPoint Coordinates = UInv_WidgetUtils::GetPositionFromIndex(Index, GridColumns) + FIntPoint(i, j);
 			const int32 TileIndex = UInv_WidgetUtils::GetIndexFromPosition(Coordinates, GridColumns);
 			if (Array.IsValidIndex(TileIndex))
 			{
-				Function(Array[TileIndex]);
+				Function(Array[TileIndex]);//Array[TileIndex]是格子对象
 			}
 		}
 	}

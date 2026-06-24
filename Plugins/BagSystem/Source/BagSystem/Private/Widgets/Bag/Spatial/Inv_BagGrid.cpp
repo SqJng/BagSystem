@@ -47,35 +47,123 @@ void UInv_BagGrid::ConstructGrid()
 	}
 }
 
+//子背包判断有空
 FInv_SlotAvailabilityResult UInv_BagGrid::HasRoomForItem(const UInv_ItemComponent* ItemComponent)
-{//子背包判断有空
+{
 	return HasRoomForItem(ItemComponent->GetItemManifest());
 }
-
+//自己的AddItem时判断有空，为什么要多一个
 FInv_SlotAvailabilityResult UInv_BagGrid::HasRoomForItem(const UInv_BagItem* Item)
-{//自己的AddItem时判断有空，为什么要多一个
+{
 	return HasRoomForItem(Item->GetItemManifest());
 }
-
+//真正的判断有空在这
 FInv_SlotAvailabilityResult UInv_BagGrid::HasRoomForItem(const FInv_ItemManifest& Manifest)
-{//真正的判断有空在这
+{
 	FInv_SlotAvailabilityResult Result;
 	
-	Result.TotalRoomToFill = 7;
-	Result.bStackable = true;
-	FInv_SlotAvailability SlotAvailability;
-	SlotAvailability.AmountToFill = 2;
-	SlotAvailability.Index = 0;
 	
-	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability));
+	const FInv_StackableFragment* StackableFragment = Manifest.GetFragmentOfType<FInv_StackableFragment>();
+	Result.bStackable = StackableFragment != nullptr;
+	
+	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxStackSize() : 1;
+	int32 AmountToFill = StackableFragment ? StackableFragment->GetStackCount() : 1;//这是要放的数量，默认1
 
-	FInv_SlotAvailability SlotAvailability2;
-	SlotAvailability2.AmountToFill = 5;
-	SlotAvailability2.Index = 1;
-	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability2));
+	TSet<int32> CheckedIndices;// 下标数组，记录已检查过的格子
+	
+	for (const auto& GridSlot : GridSlots)// 遍历每一个背包槽位 
+	{
+		if (AmountToFill == 0) break;//任务完成
+		if (IsIndexClaimed(CheckedIndices, GridSlot->GetIndex())) continue;// 检查过就跳，记录可用格子
+		
+		if (!IsInGridBounds(GridSlot->GetIndex(), GetItemDimensions(Manifest))) continue;// 物品尺寸超出网格边界，跳过
+		
+		TSet<int32> lsCheckedIndices;//ls下标数组
+		if (!HasRoomAtIndex(GridSlot, GetItemDimensions(Manifest), CheckedIndices, lsCheckedIndices, Manifest.GetItemType(), MaxStackSize))
+		{
+			continue;//放不了
+		}
+		
+		const int32 AmountToFillInSlot = DetermineFillAmountForSlot(Result.bStackable, MaxStackSize, AmountToFill, GridSlot);//当前格子还能放多少个这个物品
+		if (AmountToFillInSlot == 0) continue;
+		
+		CheckedIndices.Append(lsCheckedIndices);//能放下，全部标记
+		
+		// 记录总可用空间
+		Result.TotalRoomToFill += AmountToFillInSlot;
+		//数组末尾构造一个新元素
+		Result.SlotAvailabilities.Emplace(
+			FInv_SlotAvailability{
+				HasValidItem(GridSlot) ? GridSlot->GetUpperLeftIndex() : GridSlot->GetIndex(),
+				Result.bStackable ? AmountToFillInSlot : 0,
+				HasValidItem(GridSlot)
+			}
+		);
+
+		AmountToFill -= AmountToFillInSlot;
+		// 记录还剩多少要放
+		Result.Remainder = AmountToFill;
+
+		if (AmountToFill == 0) return Result;
+	}
 	
 	return Result;
 }
+// 检查以当前格子为左上角的区域是否有足够的空间来放置物品。检查每个格子是否符合条件，如果符合就标记到OutTentativelyClaimed里
+bool UInv_BagGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot, const FIntPoint& Dimensions,const TSet<int32>& CheckedIndices,	TSet<int32>& OutTentativelyClaimed,const FGameplayTag& ItemType,const int32 MaxStackSize)
+{
+	bool bHasRoomAtIndex = true;//flag
+//把符合条件的格子都用ls下标数组标记
+	UInv_BagStatics::ForEach2D(GridSlots, GridSlot->GetIndex(), Dimensions, Columns,
+		[&](const UInv_GridSlot* SubGridSlot)
+		{
+			if (CheckSlotConstraints(GridSlot, SubGridSlot, CheckedIndices, OutTentativelyClaimed, ItemType, MaxStackSize))
+			{
+				OutTentativelyClaimed.Add(SubGridSlot->GetIndex());
+			}
+			else
+			{
+				bHasRoomAtIndex = false;
+			}
+		}
+	);
+
+	return bHasRoomAtIndex;
+}
+//检查格子约束条件，格子里有物品吗？索引查过没？是不是左上角格子？//GridSlot是左上角格子，SubGridSlot是正在检查的格子
+bool UInv_BagGrid::CheckSlotConstraints(const UInv_GridSlot* GridSlot,
+												const UInv_GridSlot* SubGridSlot,
+												const TSet<int32>& CheckedIndices,
+												TSet<int32>& OutTentativelyClaimed,
+												const FGameplayTag& ItemType,
+												const int32 MaxStackSize) const
+{
+	if (IsIndexClaimed(CheckedIndices, SubGridSlot->GetIndex())) return false;// 格子已被占用？
+	
+	if (!HasValidItem(SubGridSlot))
+	{
+		OutTentativelyClaimed.Add(SubGridSlot->GetIndex());// 没东西就标记
+		return true;
+	}
+	if (!IsUpperLeftSlot(GridSlot, SubGridSlot)) return false;// 不是左上角格子就不行，等同于格子被占用
+	
+	const UInv_BagItem* SubItem = SubGridSlot->GetBagItem().Get();
+	if (!SubItem->IsStackable()) return false;// 物品不可堆叠不要？
+	
+	if (!DoesItemTypeMatch(SubItem, ItemType)) return false;// 物品子Tag不匹配不要
+
+	if (GridSlot->GetStackCount() >= MaxStackSize) return false;// 左上角格子显示的数量已经达到最大堆叠数了不要
+	
+	return true;
+}
+//从物品清单里拿到格子片段，获取物品占几乘几格子
+FIntPoint UInv_BagGrid::GetItemDimensions(const FInv_ItemManifest& Manifest) const
+{
+	const FInv_GridFragment* GridFragment = Manifest.GetFragmentOfType<FInv_GridFragment>();
+	return GridFragment ? GridFragment->GetGridSize() : FIntPoint(1, 1);
+}
+
+
 //动态多播，外界更新ui的入口
 void UInv_BagGrid::AddItem(UInv_BagItem* Item)
 {
@@ -84,42 +172,31 @@ void UInv_BagGrid::AddItem(UInv_BagItem* Item)
 	FInv_SlotAvailabilityResult Result = HasRoomForItem(Item);
 	AddItemToIndices(Result, Item);	
 }
-//
-void UInv_BagGrid::AddSlottedItemToCanvas(const int32 Index, const FInv_GridFragment* GridFragment, UInv_SlottedItem* SlottedItem) const
-{
-	CanvasPanel->AddChild(SlottedItem);
-	//GridSlot也是通过这个类设置位置和大小的
-	UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(SlottedItem);
-	const FVector2D DrawPos = UInv_WidgetUtils::GetPositionFromIndex(Index, Columns) * TileSize;
-	const FVector2D DrawPosWithPadding = DrawPos + FVector2D(GridFragment->GetGridPadding());
-	CanvasSlot->SetSize(GetDrawSize(GridFragment));
-	CanvasSlot->SetPosition(DrawPosWithPadding);
-}
 //AddItem里的封装1
 void UInv_BagGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_BagItem* NewItem)
 {
-	for (const auto& Availability : Result.SlotAvailabilities)
+	for (const auto& Availability : Result.SlotAvailabilities)//遍历每个格子，拿到格子下标和这个格子还能放多少个当前物品的信息
 	{
 		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availability.AmountToFill);
 		UpdateGridSlots(NewItem, Availability.Index, Result.bStackable, Availability.AmountToFill);
 	}
 }
-//渲染物品图标到格子里，占几行几列都给渲染好，信息保存到SlottedItems里。。。AddItem里的封装2。
+//渲染物品图标到格子里，占几行几列都给渲染好，信息保存到SlottedItems里
 void UInv_BagGrid::AddItemAtIndex(UInv_BagItem* Item, const int32 Index, const bool bStackable, const int32 StackAmount)
-{//BagItem里并不持有SlottedItem，图标等信息在持有的清单里有片段
+{//BagItem里并不持有SlottedItem，取到Item的Manifest，遍历清单里每个片段，找到需要的片段
 	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(Item, FragmentTags::GridFragment);
 	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(Item, FragmentTags::IconFragment);
 	if (!GridFragment || !ImageFragment) return;
 
 	UInv_SlottedItem* SlottedItem = CreateSlottedItem(Item, bStackable, StackAmount, GridFragment, ImageFragment, Index);//SlottedItem首次使用
 
-	// 把图标控件添加到画布里对应的格子上
+	// 把物品图标添加到画布里对应的格子上
 	AddSlottedItemToCanvas(Index, GridFragment, SlottedItem);
 	
 	// 把格子里放的物品保存到 SlottedItems 里，方便后续查询
 	SlottedItems.Add(Index, SlottedItem);
 }
-//AddItem里的封装3
+// 创建一个物品图标，绑定弱指针Item，及其片段里的图标大小
 UInv_SlottedItem* UInv_BagGrid::CreateSlottedItem(UInv_BagItem* Item, const bool bStackable, const int32 StackAmount, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment, const int32 Index)
 {
 	UInv_SlottedItem* SlottedItem = CreateWidget<UInv_SlottedItem>(GetOwningPlayer(), SlottedItemClass);
@@ -134,8 +211,19 @@ UInv_SlottedItem* UInv_BagGrid::CreateSlottedItem(UInv_BagItem* Item, const bool
 
 	return SlottedItem;
 }
+//
+void UInv_BagGrid::AddSlottedItemToCanvas(const int32 Index, const FInv_GridFragment* GridFragment, UInv_SlottedItem* SlottedItem) const
+{
+	CanvasPanel->AddChild(SlottedItem);
+	//GridSlot也是通过这个类设置位置和大小的
+	UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(SlottedItem);
+	const FVector2D DrawPos = UInv_WidgetUtils::GetPositionFromIndex(Index, Columns) * TileSize;//格子位置*格子尺寸=图标位置。图标位置还要加上格子padding，才能得到最终的图标绘制位置
+	const FVector2D DrawPosWithPadding = DrawPos + FVector2D(GridFragment->GetGridPadding());
+	CanvasSlot->SetSize(GetDrawSize(GridFragment));//找到左上角，按照
+	CanvasSlot->SetPosition(DrawPosWithPadding);
+}
 
-//AddItem里的封装4。渲染图标控件函数。从片段里拿到图标，渲染到图标控件SlottedItem里
+//渲染图标控件函数。从片段里拿到图标，渲染到图标控件SlottedItem里
 void UInv_BagGrid::SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment) const
 {
 	FSlateBrush Brush;
@@ -144,11 +232,13 @@ void UInv_BagGrid::SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, cons
 	Brush.ImageSize = GetDrawSize(GridFragment);
 	SlottedItem->SetImageBrush(Brush);
 }
-//AddItem里的封装5。计算去掉格子padding后图标size，用来渲染图标控件
+//计算物品图标的绘制尺寸
 FVector2D UInv_BagGrid::GetDrawSize(const FInv_GridFragment* GridFragment) const
-{
-	const float IconTileWidth = TileSize - GridFragment->GetGridPadding() * 2;
-	return GridFragment->GetGridSize() * IconTileWidth;//几乘几格 * 去掉padding后的格子size
+{// 1. 先计算没有 Padding 时的绝对总格子大小 (例如 2格 * 100 = 200)
+	const FVector2D TotalFullSize = GridFragment->GetGridSize() * TileSize;
+    
+	// 2. 无论物品多大，都只减去最外圈的 2 个 Padding (例如 200 - 20 = 180)
+	return TotalFullSize - FVector2D(GridFragment->GetGridPadding() * 2.0f);
 }
 
 //更新格子状态为占用。从Item的格子片段里拿到占几个格子的信息，遍历更新每个格子状态
@@ -160,7 +250,7 @@ void UInv_BagGrid::UpdateGridSlots(UInv_BagItem* NewItem, const int32 Index, boo
 	{
 		GridSlots[Index]->SetStackCount(StackAmount);
 	}
-
+//取格子片段看看这个Item占几格，遍历设为占用
 	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment);
 	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1, 1);
 
@@ -176,4 +266,52 @@ void UInv_BagGrid::UpdateGridSlots(UInv_BagItem* NewItem, const int32 Index, boo
 bool UInv_BagGrid::MatchesCategory(const UInv_BagItem* Item) const
 {
 	return Item->GetItemManifest().GetItemCategory() == ItemCategory;
+}
+//格子里有物品吗？查它的BagItem弱指针是否有效
+bool UInv_BagGrid::HasValidItem(const UInv_GridSlot* GridSlot) const
+{
+	return GridSlot->GetBagItem().IsValid();
+}
+//这个格子是物品的左上角格子吗？
+bool UInv_BagGrid::IsUpperLeftSlot(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot) const
+{
+	return SubGridSlot->GetUpperLeftIndex() == GridSlot->GetIndex();
+}
+//物品子Tag匹配吗
+bool UInv_BagGrid::DoesItemTypeMatch(const UInv_BagItem* SubItem, const FGameplayTag& ItemType) const
+{
+	return SubItem->GetItemManifest().GetItemType().MatchesTagExact(ItemType);
+}
+// 检查时，背包剩余行数列数不足以放置物品时，就不必再检查了，直接返回false
+bool UInv_BagGrid::IsInGridBounds(const int32 StartIndex, const FIntPoint& ItemDimensions) const
+{
+	if (StartIndex < 0 || StartIndex >= GridSlots.Num()) return false;
+	const int32 EndColumn = (StartIndex % Columns) + ItemDimensions.X;
+	const int32 EndRow = (StartIndex / Columns) + ItemDimensions.Y;
+	return EndColumn <= Columns && EndRow <= Rows;
+}
+//当前格子还能放多少个物品
+int32 UInv_BagGrid::DetermineFillAmountForSlot(const bool bStackable, const int32 MaxStackSize,
+	const int32 AmountToFill, const UInv_GridSlot* GridSlot) const
+{
+	const int32 RoomInSlot = MaxStackSize - GetStackAmount(GridSlot);
+	return bStackable ? FMath::Min(AmountToFill, RoomInSlot) : 1;
+}
+//获取左上角格子记录的数量
+int32 UInv_BagGrid::GetStackAmount(const UInv_GridSlot* GridSlot) const
+{
+	int32 CurrentSlotStackCount = GridSlot->GetStackCount();
+	// 如果当前槽位未存储栈计数，我们就必须获取实际栈计数。
+	if (const int32 UpperLeftIndex = GridSlot->GetUpperLeftIndex(); UpperLeftIndex != INDEX_NONE)
+	{
+		UInv_GridSlot* UpperLeftGridSlot = GridSlots[UpperLeftIndex];
+		CurrentSlotStackCount = UpperLeftGridSlot->GetStackCount();
+	}
+	return CurrentSlotStackCount;
+}
+
+//这个下标查过没？ 就是看CheckedIndices里有没有这个Index
+bool UInv_BagGrid::IsIndexClaimed(const TSet<int32>& CheckedIndices, const int32 Index) const
+{
+	return CheckedIndices.Contains(Index);
 }

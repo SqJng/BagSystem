@@ -84,6 +84,15 @@ void FInv_BagFastArray::RemoveEntry(UInv_BagItem* Item)
 		}
 	}
 }
+//遍历 Entries 数组，找到第一个匹配 ItemType 的物品并返回它的 UInv_BagItem 指针，如果没有找到则返回 nullptr
+UInv_BagItem* FInv_BagFastArray::FindFirstItemByType(const FGameplayTag& ItemType)
+{
+	auto* FoundItem = Entries.FindByPredicate([ItemType = ItemType](const FInv_BagEntry& Entry)
+	{
+		return IsValid(Entry.Item) && Entry.Item->GetItemManifest().GetItemType().MatchesTagExact(ItemType);
+	});
+	return FoundItem ? FoundItem->Item : nullptr;
+}
 
 
 

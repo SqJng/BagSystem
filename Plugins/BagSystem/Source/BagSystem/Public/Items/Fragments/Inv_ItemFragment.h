@@ -24,8 +24,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FGameplayTag FragmentTag = FGameplayTag::EmptyTag;//这个片段是什么类型物品的片段
 };
-//以外物品清单用了ExcludeBaseStruct，所以搞个子结构体来编辑格子信息
-//物品占几个格子、格子间距等信息
+
+//物品占几乘几个格子、格子间距
 USTRUCT(BlueprintType)
 struct FInv_GridFragment : public FInv_ItemFragment
 {
@@ -59,7 +59,7 @@ private:
 	TObjectPtr<UTexture2D> Icon{nullptr};
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	FVector2D IconDimensions{44.f, 44.f};
+	FVector2D IconDimensions{44.f, 44.f};//IconDimensions=GridSize*TileSize-GridPadding*2
 };
 //堆叠片段。包含最大堆叠数量、当前堆叠数量等信息
 USTRUCT(BlueprintType)

@@ -33,20 +33,23 @@ struct BAGSYSTEM_API FInv_ItemManifest//物品清单/物品说明书，用来描
 	template<typename T> requires std::derived_from<T, FInv_ItemFragment>
 	const T* GetFragmentOfTypeWithTag(const FGameplayTag& FragmentTag) const;
 
+	template<typename T> requires std::derived_from<T, FInv_ItemFragment>
+	const T* GetFragmentOfType() const;//如果一个物品只有一个同类型的片段，就可以直接用这个函数拿到片段数据
+
 
 private:
-	//想要多少片段自己挂哈哈
+	//片段数组。通过不同片段为物品添加不同的功能，例如格子片段、图标片段、堆叠片段等。为了方便BagItem获取清单里的片段，每个片段都有一个唯一的Tag，
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (ExcludeBaseStruct))//ExcludeBaseStruct这个属性在蓝图中只能编辑子类结构体
-	TArray<TInstancedStruct<FInv_ItemFragment>> Fragments;
+	TArray<TInstancedStruct<FInv_ItemFragment>> Fragments;//想要多少片段自己挂哈哈，
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	EInv_ItemCategory ItemCategory{EInv_ItemCategory::None};//物品分类，默认 None
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	FGameplayTag ItemType;
+	FGameplayTag ItemType;//物品Tag，例如装备分类下的武器、护甲、饰品等
 };
 
-
+//
 template<typename T>
 requires std::derived_from<T, FInv_ItemFragment>
 const T* FInv_ItemManifest::GetFragmentOfTypeWithTag(const FGameplayTag& FragmentTag) const
@@ -56,6 +59,20 @@ const T* FInv_ItemManifest::GetFragmentOfTypeWithTag(const FGameplayTag& Fragmen
 		if (const T* FragmentPtr = Fragment.GetPtr<T>())
 		{
 			if (!FragmentPtr->GetFragmentTag().MatchesTagExact(FragmentTag)) continue;
+			return FragmentPtr;
+		}
+	}
+	
+	return nullptr;
+}
+//直接找叫这个名字的片段
+template <typename T> requires std::derived_from<T, FInv_ItemFragment>
+const T* FInv_ItemManifest::GetFragmentOfType() const
+{
+	for (const TInstancedStruct<FInv_ItemFragment>& Fragment : Fragments)
+	{
+		if (const T* FragmentPtr = Fragment.GetPtr<T>())
+		{
 			return FragmentPtr;
 		}
 	}

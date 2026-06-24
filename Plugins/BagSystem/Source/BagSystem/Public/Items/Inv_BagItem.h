@@ -27,6 +27,7 @@ public:
 	void SetItemManifest(const FInv_ItemManifest& Manifest);
 	const FInv_ItemManifest& GetItemManifest() const { return ItemManifest.Get<FInv_ItemManifest>(); }
 	FInv_ItemManifest& GetItemManifestMutable() { return ItemManifest.GetMutable<FInv_ItemManifest>(); }
+	bool IsStackable() const;
 private:
 
 	UPROPERTY(VisibleAnywhere, meta = (BaseStruct = "/Script/BagSystem.Inv_ItemManifest"), Replicated)//插件名字.结构体名字

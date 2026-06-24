@@ -3,6 +3,8 @@
 
 #include "BagManagement/Components/Inv_BagComponent.h"
 
+#include "Items/Inv_BagItem.h"
+#include "Items/Components/Inv_ItemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/Bag/BagBase/Inv_BagBase.h"
 
@@ -26,17 +28,20 @@ void UInv_BagComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 {
 	FInv_SlotAvailabilityResult Result = BagMenu->HasRoomForItem(ItemComponent);
 
+	UInv_BagItem* FoundItem = BagList.FindFirstItemByType(ItemComponent->GetItemManifest().GetItemType());
+	Result.Item = FoundItem;
+
 	if (Result.TotalRoomToFill == 0)
 	{
 		NoRoomInBag.Broadcast();
 		return;
 	}
 	
-	if (Result.Item.IsValid() && Result.bStackable)//如果背包里已经有这个物品了，并且这个物品是可以叠加的
+	if (Result.Item.IsValid() && Result.bStackable)//添加可堆叠的旧物品
 	{
 		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
 	}
-	else if (Result.TotalRoomToFill > 0)//如果背包里没有这个物品，或者这个物品不可叠加了，但背包里还有空格子了
+	else if (Result.TotalRoomToFill > 0)//添加新物品或不可堆叠物
 	{//如果这个物品可叠加了但背包里没有了，那就传 TotalRoomToFill 让服务器先堆叠一下再新增；如果这个物品不可叠加了或者背包里根本没有了，那就直接传 0 让服务器新增
 		Server_AddNewItem(ItemComponent, Result.bStackable ? Result.TotalRoomToFill : 0);
 	}

@@ -18,6 +18,8 @@
             "x:\\games\\ue_5.6\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\coreuobject\\uht\\instancedstruct.generated.h",
             "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_itemmanifest.generated.h",
             "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_bagitem.generated.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\source\\bagsystem\\public\\items\\fragments\\inv_itemfragment.h",
+            "x:\\software\\epic games\\unreal projects\\beibaoxitong\\plugins\\bagsystem\\intermediate\\build\\win64\\unrealeditor\\inc\\bagsystem\\uht\\inv_itemfragment.generated.h",
             "x:\\games\\ue_5.6\\engine\\source\\runtime\\engine\\public\\net\\unrealnetwork.h",
             "x:\\games\\ue_5.6\\engine\\source\\runtime\\net\\core\\public\\net\\core\\propertyconditions\\propertyconditions.h"
         ],
