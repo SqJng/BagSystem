@@ -13,8 +13,11 @@ struct FInv_ItemManifest;
  *
  * ItemManifest 物品清单，保存这个物品的具体数据，例如分类、图标、占格信息等
  *
- * GetItemManifest() 
- * SetItemManifest() 
+ * GetItemManifest() ，
+ * SetItemManifest()，
+ * GetFragment() 通过标签获取片段
+ *
+ * 是堆叠物吗
  */
 UCLASS()
 class BAGSYSTEM_API UInv_BagItem : public UObject//背包物品对象，进入背包后的物品数据层对象，应实现以下功能：保存物品数据（目前是 Manifest），提供接口给 UI 刷新显示，处理使用/丢弃/拖拽等交互
@@ -28,10 +31,15 @@ public:
 	const FInv_ItemManifest& GetItemManifest() const { return ItemManifest.Get<FInv_ItemManifest>(); }
 	FInv_ItemManifest& GetItemManifestMutable() { return ItemManifest.GetMutable<FInv_ItemManifest>(); }
 	bool IsStackable() const;
+	int32 GetTotalStackCount() const { return TotalStackCount; }
+	void SetTotalStackCount(int32 Count) { TotalStackCount = Count; }
 private:
 
 	UPROPERTY(VisibleAnywhere, meta = (BaseStruct = "/Script/BagSystem.Inv_ItemManifest"), Replicated)//插件名字.结构体名字
 	FInstancedStruct ItemManifest;//在AddEntry(UInv_ItemComponent)时通过物品清单告诉BS放进去的Item对应什么BagItem。
+
+	UPROPERTY(Replicated)
+	int32 TotalStackCount{0};// 直接记录背包里这个物品的总数量，方便UI显示和堆叠计算
 };
 
 template <typename FragmentType>

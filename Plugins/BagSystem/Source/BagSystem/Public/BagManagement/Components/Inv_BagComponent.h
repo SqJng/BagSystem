@@ -13,6 +13,7 @@ class UInv_BagItem;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBagItemChange, UInv_BagItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FNoRoomInBag);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackChange, const FInv_SlotAvailabilityResult&, Result);
 
 /**
  * 背包组件，挂在 PlayerController 上，负责“背包系统的入口和协调”。
@@ -63,6 +64,8 @@ public:
 	FBagItemChange OnItemAdded;//在BagGrid初始化时绑定监听后触发的事件，参数是新增的物品 UInv_BagItem*
 	FBagItemChange OnItemRemoved;
 	FNoRoomInBag NoRoomInBag;
+	FStackChange OnStackChange;//监听堆叠物变化的
+	
 protected:
 	virtual void BeginPlay() override;
 

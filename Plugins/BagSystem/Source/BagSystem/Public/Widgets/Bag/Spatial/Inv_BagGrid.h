@@ -103,6 +103,9 @@ private:
 	int32 DetermineFillAmountForSlot(const bool bStackable, const int32 MaxStackSize, const int32 AmountToFill, const UInv_GridSlot* GridSlot) const;
 	int32 GetStackAmount(const UInv_GridSlot* GridSlot) const;
 
+	UFUNCTION()
+	void AddStacks(const FInv_SlotAvailabilityResult& Result);
+
 
 	
 	// 画布，主要是渲染格子GridSlot以及物品图标SlottedItem

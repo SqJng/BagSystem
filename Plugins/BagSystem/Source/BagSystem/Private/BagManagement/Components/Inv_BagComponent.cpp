@@ -7,7 +7,9 @@
 #include "Items/Components/Inv_ItemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/Bag/BagBase/Inv_BagBase.h"
+#include "Items/Fragments/Inv_ItemFragment.h"
 
+struct FInv_StackableFragment;
 // Sets default values for this component's properties
 UInv_BagComponent::UInv_BagComponent() : BagList(this)
 {
@@ -39,22 +41,40 @@ void UInv_BagComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 	
 	if (Result.Item.IsValid() && Result.bStackable)//添加可堆叠的旧物品
 	{
+		OnStackChange.Broadcast(Result);//广播告诉客户端的BagGrid，加了堆叠物
 		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
 	}
 	else if (Result.TotalRoomToFill > 0)//添加新物品或不可堆叠物
 	{//如果这个物品可叠加了但背包里没有了，那就传 TotalRoomToFill 让服务器先堆叠一下再新增；如果这个物品不可叠加了或者背包里根本没有了，那就直接传 0 让服务器新增
 		Server_AddNewItem(ItemComponent, Result.bStackable ? Result.TotalRoomToFill : 0);
 	}
+	
+	ItemComponent->PickedUp();
 }
-
+//逻辑是：服务器收到请求后，先在 BagList 里找这个物品，如果找到了就加堆叠数，如果没找到就新增一个条目。新增条目时会调用 FInv_BagFastArray::AddEntry()，它会把新条目里的 Item 注册到背包组件的复制列表里，这样客户端才能收到变化并刷新 UI。
 void UInv_BagComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount,
 	int32 Remainder)
 {
+	const FGameplayTag& ItemType = IsValid(ItemComponent) ? ItemComponent->GetItemManifest().GetItemType() : FGameplayTag::EmptyTag;
+	UInv_BagItem* Item = BagList.FindFirstItemByType(ItemType);
+	if (!IsValid(Item)) return;
+
+	Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);//服务器获取当前的再加上新增的，好麻烦
+	//如果堆叠完了就销毁地上物品，如果没堆叠完就更新地上物品的堆叠数
+	if (Remainder == 0)
+	{
+		ItemComponent->PickedUp();
+	}
+	else if (FInv_StackableFragment* StackableFragment = ItemComponent->GetItemManifest().GetFragmentOfTypeMutable<FInv_StackableFragment>())
+	{
+		StackableFragment->SetStackCount(Remainder);
+	}
 }
 
 void UInv_BagComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount)//
 {
 	UInv_BagItem* NewItem = BagList.AddEntry(ItemComponent);//服务器添加
+	NewItem->SetTotalStackCount(StackCount);
 	//接着广播给客户端添加
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
 	{

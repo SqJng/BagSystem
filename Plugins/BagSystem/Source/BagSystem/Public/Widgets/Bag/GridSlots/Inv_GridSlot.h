@@ -52,7 +52,7 @@ public:
 private:
 	int32 TileIndex;// 一维的格子号
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> Image_GridSlot;
+	TObjectPtr<UImage> Image_GridSlot;//格子背景
 
 	int32 StackCount;//堆叠数，默认是0，空格子里是0
 	int32 UpperLeftIndex{INDEX_NONE};//当前格子所属物品占用的左上角的格子下标index，空格子里是INDEX_NONE

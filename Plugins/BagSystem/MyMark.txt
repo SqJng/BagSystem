@@ -43,3 +43,12 @@
  2.用下标数组标记可用格子
  3.遍历每个格子，以该格子再就行一次BagItem占空间大小N*M范围的遍历，判断以该格子为左上角能不能放得下
  4.每走一格就更新一次FInv_SlotAvailabilityResult Result;里的数据
+
+===
+# 第六章6.28
+
+上一章已经实现了try拾取函数的返回结果Result
+ 1.BagComponent里try拾取函数里，根据Result触发服务器广播
+ 2.拾取物品后销毁actor，
+ 3.直接加了BagItem记录数量
+ 4.实现了可堆叠物的广播、BagGrid里写了拾取堆叠物的监听函数AddStacks(Result)：Result里有说哪些格子能放，遍历就好

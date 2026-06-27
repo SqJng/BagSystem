@@ -22,6 +22,7 @@ void UInv_BagGrid::NativeOnInitialized()
 	ConstructGrid();
 	BagComponent = UInv_BagStatics::GetBagComponent(GetOwningPlayer());
 	BagComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem);
+	BagComponent->OnStackChange.AddDynamic(this, &ThisClass::AddStacks);//服务器添加了堆叠物，广播过来了
 }
 //根据行列创建格子，设置格子号，把格子添加到画布并设置位置和大小
 void UInv_BagGrid::ConstructGrid()
@@ -61,8 +62,7 @@ FInv_SlotAvailabilityResult UInv_BagGrid::HasRoomForItem(const UInv_BagItem* Ite
 FInv_SlotAvailabilityResult UInv_BagGrid::HasRoomForItem(const FInv_ItemManifest& Manifest)
 {
 	FInv_SlotAvailabilityResult Result;
-	
-	
+		
 	const FInv_StackableFragment* StackableFragment = Manifest.GetFragmentOfType<FInv_StackableFragment>();
 	Result.bStackable = StackableFragment != nullptr;
 	
@@ -83,7 +83,7 @@ FInv_SlotAvailabilityResult UInv_BagGrid::HasRoomForItem(const FInv_ItemManifest
 		{
 			continue;//放不了
 		}
-		
+		//此处重复，因为HasRoomAtIndex里已经排除了放满的格子，标记了的就是可以放的格子
 		const int32 AmountToFillInSlot = DetermineFillAmountForSlot(Result.bStackable, MaxStackSize, AmountToFill, GridSlot);//当前格子还能放多少个这个物品
 		if (AmountToFillInSlot == 0) continue;
 		
@@ -109,17 +109,18 @@ FInv_SlotAvailabilityResult UInv_BagGrid::HasRoomForItem(const FInv_ItemManifest
 	
 	return Result;
 }
-// 检查以当前格子为左上角的区域是否有足够的空间来放置物品。检查每个格子是否符合条件，如果符合就标记到OutTentativelyClaimed里
-bool UInv_BagGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot, const FIntPoint& Dimensions,const TSet<int32>& CheckedIndices,	TSet<int32>& OutTentativelyClaimed,const FGameplayTag& ItemType,const int32 MaxStackSize)
+// 检查以当前格子为左上角的区域是否有足够的空间来放置物品。检查每个格子是否符合条件，如果符合就标记到lsCheckedIndices里
+bool UInv_BagGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot, const FIntPoint& Dimensions,const TSet<int32>& CheckedIndices,	TSet<int32>& lsCheckedIndices,const FGameplayTag& ItemType,const int32 MaxStackSize)
 {
 	bool bHasRoomAtIndex = true;//flag
 //把符合条件的格子都用ls下标数组标记
 	UInv_BagStatics::ForEach2D(GridSlots, GridSlot->GetIndex(), Dimensions, Columns,
 		[&](const UInv_GridSlot* SubGridSlot)
 		{
-			if (CheckSlotConstraints(GridSlot, SubGridSlot, CheckedIndices, OutTentativelyClaimed, ItemType, MaxStackSize))
+			//此处应先判断是否放了相应BagItem且可堆叠，若是直接全部标记；否则再判断是否有足够的空格子
+			if (CheckSlotConstraints(GridSlot, SubGridSlot, CheckedIndices, lsCheckedIndices, ItemType, MaxStackSize))
 			{
-				OutTentativelyClaimed.Add(SubGridSlot->GetIndex());
+				lsCheckedIndices.Add(SubGridSlot->GetIndex());
 			}
 			else
 			{
@@ -134,7 +135,7 @@ bool UInv_BagGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot, const FIntPoint
 bool UInv_BagGrid::CheckSlotConstraints(const UInv_GridSlot* GridSlot,
 												const UInv_GridSlot* SubGridSlot,
 												const TSet<int32>& CheckedIndices,
-												TSet<int32>& OutTentativelyClaimed,
+												TSet<int32>& lsCheckedIndices,
 												const FGameplayTag& ItemType,
 												const int32 MaxStackSize) const
 {
@@ -142,16 +143,16 @@ bool UInv_BagGrid::CheckSlotConstraints(const UInv_GridSlot* GridSlot,
 	
 	if (!HasValidItem(SubGridSlot))
 	{
-		OutTentativelyClaimed.Add(SubGridSlot->GetIndex());// 没东西就标记
+		lsCheckedIndices.Add(SubGridSlot->GetIndex());// 没东西就标记，重复的
 		return true;
 	}
+	//以下是格子里有物品的情况
 	if (!IsUpperLeftSlot(GridSlot, SubGridSlot)) return false;// 不是左上角格子就不行，等同于格子被占用
-	
+	//以下对比格子里放物品是否匹配和是否还可堆叠
 	const UInv_BagItem* SubItem = SubGridSlot->GetBagItem().Get();
-	if (!SubItem->IsStackable()) return false;// 物品不可堆叠不要？
 	
 	if (!DoesItemTypeMatch(SubItem, ItemType)) return false;// 物品子Tag不匹配不要
-
+	if (!SubItem->IsStackable()) return false;// 物品不可堆叠不要？
 	if (GridSlot->GetStackCount() >= MaxStackSize) return false;// 左上角格子显示的数量已经达到最大堆叠数了不要
 	
 	return true;
@@ -290,7 +291,7 @@ bool UInv_BagGrid::IsInGridBounds(const int32 StartIndex, const FIntPoint& ItemD
 	const int32 EndRow = (StartIndex / Columns) + ItemDimensions.Y;
 	return EndColumn <= Columns && EndRow <= Rows;
 }
-//当前格子还能放多少个物品
+//当前格子还能放多少个物品，单格可放上限-当前已堆叠数
 int32 UInv_BagGrid::DetermineFillAmountForSlot(const bool bStackable, const int32 MaxStackSize,
 	const int32 AmountToFill, const UInv_GridSlot* GridSlot) const
 {
@@ -308,6 +309,27 @@ int32 UInv_BagGrid::GetStackAmount(const UInv_GridSlot* GridSlot) const
 		CurrentSlotStackCount = UpperLeftGridSlot->GetStackCount();
 	}
 	return CurrentSlotStackCount;
+}
+//当服务器添加了堆叠物品后，会广播给客户端，客户端收到广播后会调用这个函数来更新UI。它会遍历每个格子，如果格子里已经有这个物品，就更新堆叠数；如果格子里没有这个物品，就创建一个新的SlottedItem并添加到画布上，同时更新格子状态。
+void UInv_BagGrid::AddStacks(const FInv_SlotAvailabilityResult& Result)
+{
+	if (!MatchesCategory(Result.Item.Get())) return;//检查这个物品的分类是否与当前的背包网格面板相匹配
+
+	for (const auto& Availability : Result.SlotAvailabilities)
+	{
+		if (Availability.bItemAtIndex)
+		{
+			const auto& GridSlot = GridSlots[Availability.Index];
+			const auto& SlottedItem = SlottedItems.FindChecked(Availability.Index);
+			SlottedItem->UpdateStackCount(GridSlot->GetStackCount() + Availability.AmountToFill);//更新ui
+			GridSlot->SetStackCount(GridSlot->GetStackCount() + Availability.AmountToFill);//更新格子状态
+		}
+		else
+		{
+			AddItemAtIndex(Result.Item.Get(), Availability.Index, Result.bStackable, Availability.AmountToFill);
+			UpdateGridSlots(Result.Item.Get(), Availability.Index, Result.bStackable, Availability.AmountToFill);
+		}
+	}
 }
 
 //这个下标查过没？ 就是看CheckedIndices里有没有这个Index
