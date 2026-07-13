@@ -42,7 +42,8 @@ public class BagSystem : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore"
+				"SlateCore",
+				"InputCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

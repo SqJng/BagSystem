@@ -15,6 +15,7 @@
 #include "Widgets/Bag//GridSlots/Inv_GridSlot.h"
 #include "Widgets/Utils/Inv_WidgetUtils.h"
 #include "Widgets/Bag/SlottedItems/Inv_SlottedItem.h"
+#include "Widgets/Bag/HoverItem/Inv_HoverItem.h"
 
 void UInv_BagGrid::NativeOnInitialized()
 {
@@ -22,7 +23,7 @@ void UInv_BagGrid::NativeOnInitialized()
 	ConstructGrid();
 	BagComponent = UInv_BagStatics::GetBagComponent(GetOwningPlayer());
 	BagComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem);
-	BagComponent->OnStackChange.AddDynamic(this, &ThisClass::AddStacks);//服务器添加了堆叠物，广播过来了
+	BagComponent->OnStackChange.AddDynamic(this, &ThisClass::AddStacks);//触发BagGrid的AddStacks()
 }
 //根据行列创建格子，设置格子号，把格子添加到画布并设置位置和大小
 void UInv_BagGrid::ConstructGrid()
@@ -165,7 +166,7 @@ FIntPoint UInv_BagGrid::GetItemDimensions(const FInv_ItemManifest& Manifest) con
 }
 
 
-//动态多播，外界更新ui的入口
+//动态多播，TryAddItem()里查询Result的入口
 void UInv_BagGrid::AddItem(UInv_BagItem* Item)
 {
 	if (!MatchesCategory(Item)) return;//不是这个仓库的不要
@@ -209,10 +210,96 @@ UInv_SlottedItem* UInv_BagGrid::CreateSlottedItem(UInv_BagItem* Item, const bool
 	SlottedItem->SetIsStackable(bStackable);
 	const int32 StackUpdateAmount = bStackable ? StackAmount : 0;
 	SlottedItem->UpdateStackCount(StackUpdateAmount);
-
+//绑定委托	
+	SlottedItem->OnSlottedItemClicked.AddDynamic(this, &ThisClass::OnSlottedItemClicked_ThenDoSomethingInBagGrid);//SlottedItem有名为OnSlottedItemClicked的委托，这里把OnSlottedItemClicked_ThenDoSomethingInBagGrid和它绑定起来
 	return SlottedItem;
 }
-//
+
+//点击物品图标时触发的委托函数
+void UInv_BagGrid::OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex, const FPointerEvent& MouseEvent)
+{
+	check(GridSlots.IsValidIndex(GridIndex));
+	UInv_BagItem* ClickedBagItem = GridSlots[GridIndex]->GetBagItem().Get();
+
+	if (!IsValid(HoverItem) && IsLeftClick(MouseEvent))
+	{
+		PickUpBagItem(ClickedBagItem, GridIndex);
+	}
+}
+
+void UInv_BagGrid::PickUpBagItem(UInv_BagItem* ClickedBagItem, const int32 GridIndex)
+{
+	AssignHoverItem(ClickedBagItem, GridIndex, GridIndex);
+	
+	// Remove clicked item from the grid
+	RemoveItemFromGrid(ClickedBagItem, GridIndex);
+}
+
+
+void UInv_BagGrid::AssignHoverItem(UInv_BagItem* BagItem, const int32 GridIndex, const int32 PreviousGridIndex)
+{
+	AssignHoverItem(BagItem);
+
+	HoverItem->SetPreviousGridIndex(PreviousGridIndex);// 记下原来的格子索引，方便后续放回去
+	HoverItem->UpdateStackCount(BagItem->IsStackable() ? GridSlots[GridIndex]->GetStackCount() : 0);// 更新悬停物品图标的数量显示
+}
+/**
+ * 逻辑是：当鼠标点击物品图标时，创建一个悬停物品图标（HoverItem），并将其与被点击的物品（BagItem）关联起来。悬停物品图标会显示在鼠标指针附近，提供视觉反馈，表示玩家正在拖动该物品。
+ * 具体步骤如下：
+ * 1. 检查鼠标上是不是已经有悬停物品了。
+ * 2. 从 BagItem 中获取 FInv_GridFragment 和 FInv_ImageFragment 片段，这些片段包含了物品在网格中的尺寸信息和图标资源。给悬停图标赋值
+ * 3. 设置悬停物品图标在鼠标指针附近显示，使用 GetOwningPlayer()->SetMouseCursorWidget() 方法将悬停物品图标绑定到鼠标光标上，使其在拖动过程中跟随鼠标移动。
+ * @param BagItem 
+ */
+void UInv_BagGrid::AssignHoverItem(UInv_BagItem* BagItem)
+{
+	if (!IsValid(HoverItem))
+	{
+		HoverItem = CreateWidget<UInv_HoverItem>(GetOwningPlayer(), HoverItemClass);
+	}
+
+	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(BagItem, FragmentTags::GridFragment);
+	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(BagItem, FragmentTags::IconFragment);
+	if (!GridFragment || !ImageFragment) return;
+
+	const FVector2D DrawSize = GetDrawSize(GridFragment);
+
+	FSlateBrush IconBrush;
+	IconBrush.SetResourceObject(ImageFragment->GetIcon());
+	IconBrush.DrawAs = ESlateBrushDrawType::Image;
+	IconBrush.ImageSize = DrawSize * UWidgetLayoutLibrary::GetViewportScale(this);
+
+	HoverItem->SetImageBrush(IconBrush);
+	HoverItem->SetGridDimensions(GridFragment->GetGridSize());
+	HoverItem->SetBagItem(BagItem);
+	HoverItem->SetIsStackable(BagItem->IsStackable());
+
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, HoverItem);
+}
+
+void UInv_BagGrid::RemoveItemFromGrid(UInv_BagItem* BagItem, const int32 GridIndex)
+{
+	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(BagItem, FragmentTags::GridFragment);
+	if (!GridFragment) return;
+
+	UInv_BagStatics::ForEach2D(GridSlots, GridIndex, GridFragment->GetGridSize(), Columns, [&](UInv_GridSlot* GridSlot)
+	{	//把物品所占的NxM个格子重置格子内容、格子归属、占用、可用性、堆叠数
+		GridSlot->SetBagItem(nullptr);
+		GridSlot->SetUpperLeftIndex(INDEX_NONE);
+		GridSlot->SetUnoccupiedTexture();
+		GridSlot->SetAvailable(true);
+		GridSlot->SetStackCount(0);
+	});
+
+	if (SlottedItems.Contains(GridIndex))// 移除下标和对应的物品图标的Map
+	{
+		TObjectPtr<UInv_SlottedItem> FoundSlottedItem;
+		SlottedItems.RemoveAndCopyValue(GridIndex, FoundSlottedItem);//第二个参数是接收被移除的元素图标，
+		FoundSlottedItem->RemoveFromParent();
+	}
+}
+
+//把物品图标添加到画布里对应的格子上，设置位置和大小
 void UInv_BagGrid::AddSlottedItemToCanvas(const int32 Index, const FInv_GridFragment* GridFragment, UInv_SlottedItem* SlottedItem) const
 {
 	CanvasPanel->AddChild(SlottedItem);
@@ -315,7 +402,7 @@ void UInv_BagGrid::AddStacks(const FInv_SlotAvailabilityResult& Result)
 {
 	if (!MatchesCategory(Result.Item.Get())) return;//检查这个物品的分类是否与当前的背包网格面板相匹配
 
-	for (const auto& Availability : Result.SlotAvailabilities)
+	for (const auto& Availability : Result.SlotAvailabilities)// 每个格子该放多少已经在 HasRoomForItem() 里计算好了
 	{
 		if (Availability.bItemAtIndex)
 		{
@@ -336,4 +423,16 @@ void UInv_BagGrid::AddStacks(const FInv_SlotAvailabilityResult& Result)
 bool UInv_BagGrid::IsIndexClaimed(const TSet<int32>& CheckedIndices, const int32 Index) const
 {
 	return CheckedIndices.Contains(Index);
+}
+
+
+
+bool UInv_BagGrid::IsRightClick(const FPointerEvent& MouseEvent) const
+{
+	return MouseEvent.GetEffectingButton() == EKeys::RightMouseButton;
+}
+
+bool UInv_BagGrid::IsLeftClick(const FPointerEvent& MouseEvent) const
+{
+	return MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton;
 }

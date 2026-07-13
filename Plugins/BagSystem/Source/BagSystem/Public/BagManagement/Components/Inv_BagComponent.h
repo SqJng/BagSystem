@@ -60,7 +60,7 @@ public:
 	
 	void ToggleBagMenu();
 	void AddRepSubObj(UObject* SubObj);
-
+//监听
 	FBagItemChange OnItemAdded;//在BagGrid初始化时绑定监听后触发的事件，参数是新增的物品 UInv_BagItem*
 	FBagItemChange OnItemRemoved;
 	FNoRoomInBag NoRoomInBag;
@@ -76,7 +76,7 @@ private:
 	void ConstructBag(); //构建背包UI
 
 	UPROPERTY(Replicated)
-	FInv_BagFastArray BagList;
+	FInv_BagFastArray BagList;//快速数组
 
 	//在背包组件中创建一个背包UI实例，并将其添加到玩家的HUD上。初始化时由蓝图设置的BagMenuClass构建
 	UPROPERTY()

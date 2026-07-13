@@ -83,7 +83,7 @@ const T* FInv_ItemManifest::GetFragmentOfType() const
 	
 	return nullptr;
 }
-//用片段类型找片段，这个返回可修改的指针，ps：Mutable可变的
+//用片段类型找片段，返回可修改的指针，ps：Mutable可变的
 template <typename T> requires std::derived_from<T, FInv_ItemFragment>
 T* FInv_ItemManifest::GetFragmentOfTypeMutable()
 {//服务器端在BC里 Server_AddStacksToItem_Implementation时没拾取完时，更新地上物品的数量

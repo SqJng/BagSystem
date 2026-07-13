@@ -20,7 +20,6 @@ TArray<UInv_BagItem*> FInv_BagFastArray::GetAllItems() const
 
 void FInv_BagFastArray::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
 {
-	
 	UInv_BagComponent* IC = Cast<UInv_BagComponent>(OwnerComponent);
 	if (!IsValid(IC)) return;
 	//对每个即将删除的物品广播 OnItemRemoved
@@ -29,7 +28,7 @@ void FInv_BagFastArray::PreReplicatedRemove(const TArrayView<int32> RemovedIndic
 		IC->OnItemRemoved.Broadcast(Entries[Index].Item);
 	}
 }
-//客户端的FastArray监听到变化后触发的回调
+//FastArray加入新条目自动触发 广播给BagGrid
 void FInv_BagFastArray::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
 {//服务器调用 AddEntry() 后会 MarkItemDirty()，客户端监听到变化后会调用这个回调函数，AddedIndices 就是新增条目的下标，我们可以通过下标找到新增的条目，进而找到新增的物品 Item，然后广播 OnItemAdded 事件，UI 刷新显示新物品
 	UInv_BagComponent* IC = Cast<UInv_BagComponent>(OwnerComponent);
@@ -40,7 +39,7 @@ void FInv_BagFastArray::PostReplicatedAdd(const TArrayView<int32> AddedIndices, 
 		IC->OnItemAdded.Broadcast(Entries[Index].Item);//执行BC的广播事件，触发BaGrid的 UI 刷新显示新物品
 	}
 }
-//服务器才能调用
+//服务器用的
 UInv_BagItem* FInv_BagFastArray::AddEntry(UInv_ItemComponent* ItemComponent)
 {
 	check(OwnerComponent);

@@ -27,12 +27,17 @@ class UTextBlock;
  */
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSlottedItemClicked, int32, GridIndex, const FPointerEvent&, MouseEvent);		//这是一个动态多播委托，声明了一个名为 FSlottedItemClicked 的委托类型，它有两个参数：GridIndex（int32 类型）和 MouseEvent（const FPointerEvent& 类型）。这个委托可以用于在物品图标被点击时通知其他对象，传递被点击的格子索引和鼠标事件信息。
+
+
 UCLASS()
 class BAGSYSTEM_API UInv_SlottedItem : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	
 	bool IsStackable() const { return bIsStackable; }
 	void SetIsStackable(bool bStackable) { bIsStackable = bStackable; }
 	UImage* GetImageIcon() const { return Image_Icon; }
@@ -44,6 +49,8 @@ public:
 	UInv_BagItem* GetBagItem() const { return BagItem.Get(); }
 	void SetBagItem(UInv_BagItem* Item);
 	void UpdateStackCount(int32 StackCount);
+
+	FSlottedItemClicked OnSlottedItemClicked;//声明了一个名为 OnSlottedItemClicked 的委托变量，它的类型是 FSlottedItemClicked。这个委托可以用于在物品图标被点击时通知其他对象，传递被点击的格子索引和鼠标事件信息。
 private:
 
 	UPROPERTY(meta = (BindWidget))//在编辑器里继承这个类时你得拖一个image到子层级下，且必须命名为Image_Icon，不然这个编译错误

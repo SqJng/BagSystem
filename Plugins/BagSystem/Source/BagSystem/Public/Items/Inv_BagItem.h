@@ -13,8 +13,6 @@ struct FInv_ItemManifest;
  *
  * ItemManifest 物品清单，保存这个物品的具体数据，例如分类、图标、占格信息等
  *
- * GetItemManifest() ，
- * SetItemManifest()，
  * GetFragment() 通过标签获取片段
  *
  * 是堆叠物吗
@@ -39,7 +37,7 @@ private:
 	FInstancedStruct ItemManifest;//在AddEntry(UInv_ItemComponent)时通过物品清单告诉BS放进去的Item对应什么BagItem。
 
 	UPROPERTY(Replicated)
-	int32 TotalStackCount{0};// 直接记录背包里这个物品的总数量，方便UI显示和堆叠计算
+	int32 TotalStackCount{0};// 背包里这个物品的总数量--有Get、Set
 };
 
 template <typename FragmentType>

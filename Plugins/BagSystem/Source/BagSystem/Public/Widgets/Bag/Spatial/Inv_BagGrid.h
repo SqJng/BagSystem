@@ -9,6 +9,7 @@
 #include "Inv_BagGrid.generated.h"
 
 
+class UInv_HoverItem;
 struct FGameplayTag;
 struct FInv_ImageFragment;
 class UInv_SlottedItem;
@@ -106,8 +107,24 @@ private:
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);
 
+	/** 拖动物品图标逻辑
+	 */
+	UFUNCTION()
+	void OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex, const FPointerEvent& MouseEvent);
+	bool IsRightClick(const FPointerEvent& MouseEvent) const;
+	bool IsLeftClick(const FPointerEvent& MouseEvent) const;
+	void PickUpBagItem(UInv_BagItem* ClickedBagItem, const int32 GridIndex);
+	void AssignHoverItem(UInv_BagItem* BagItem);										//创建悬停物品图标并绑定 BagItem
+	void AssignHoverItem(UInv_BagItem* BagItem, const int32 GridIndex, const int32 PreviousGridIndex);
+	void RemoveItemFromGrid(UInv_BagItem* InventoryItem, const int32 GridIndex);
 
-	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UInv_HoverItem> HoverItemClass;
+
+	UPROPERTY()
+	TObjectPtr<UInv_HoverItem> HoverItem;
+
+	/*  */
 	// 画布，主要是渲染格子GridSlot以及物品图标SlottedItem
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> CanvasPanel;

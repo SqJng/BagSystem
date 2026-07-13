@@ -11,6 +11,12 @@ void UInv_SlottedItem::SetBagItem(UInv_BagItem* Item)
 {
 	BagItem = Item;
 }
+//NativeOnMouseButtonDown是UUserWidget的虚函数鼠标点击事件。
+FReply UInv_SlottedItem::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	OnSlottedItemClicked.Broadcast(GridIndex, MouseEvent);//
+	return FReply::Handled();
+}
 
 void UInv_SlottedItem::SetImageBrush(const FSlateBrush& Brush) const
 {
