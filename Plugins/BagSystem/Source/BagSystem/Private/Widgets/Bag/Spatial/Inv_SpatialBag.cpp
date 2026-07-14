@@ -18,7 +18,7 @@
  	Button_Consumables->OnClicked.AddDynamic(this, &ThisClass::ShowConsumables);
  	Button_Craftables->OnClicked.AddDynamic(this, &ThisClass::ShowCraftables);
 
- 	ShowEquippables();
+ 	ShowConsumables();
  }
 
  FInv_SlotAvailabilityResult UInv_SpatialBag::HasRoomForItem(UInv_ItemComponent* ItemComponent) const

@@ -50,14 +50,14 @@ public:
 	void SetGrayedOutTexture();
 	
 private:
-	int32 TileIndex;// 一维的格子号
+	int32 TileIndex{INDEX_NONE};// 一维的格子号
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Image_GridSlot;//格子背景
 
-	int32 StackCount;//堆叠数，默认是0，空格子里是0
+	int32 StackCount{0};//堆叠数，默认是0，空格子里是0
 	int32 UpperLeftIndex{INDEX_NONE};//当前格子所属物品占用的左上角的格子下标index，空格子里是INDEX_NONE
 	TWeakObjectPtr<UInv_BagItem> BagItem;//弱指针指向这个格子里是什么物品
-	bool bAvailable;//这个格子能不能放东西，默认能放
+	bool bAvailable{true};//这个格子能不能放东西，默认能放
 
 
 	

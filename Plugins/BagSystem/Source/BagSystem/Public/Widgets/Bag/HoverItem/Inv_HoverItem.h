@@ -40,7 +40,7 @@ class BAGSYSTEM_API UInv_HoverItem : public UUserWidget
 	TObjectPtr<UTextBlock> Text_StackCount;//
 
 	int32 PreviousGridIndex;//原来的格子索引
-	FIntPoint GridDimensions;//大小
+	FIntPoint GridDimensions;//几乘几
 	TWeakObjectPtr<UInv_BagItem> BagItem;// 拿的物品
 	bool bIsStackable{false};
 	int32 StackCount{0};// 原来的数量

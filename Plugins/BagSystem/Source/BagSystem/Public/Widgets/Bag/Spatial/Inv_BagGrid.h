@@ -9,6 +9,8 @@
 #include "Inv_BagGrid.generated.h"
 
 
+// 这里只需要把枚举作为函数参数使用，前向声明可避免在头文件中额外包含 GridSlot 头文件。
+enum class EInv_GridSlotState : uint8;
 class UInv_HoverItem;
 struct FGameplayTag;
 struct FInv_ImageFragment;
@@ -44,6 +46,7 @@ class BAGSYSTEM_API UInv_BagGrid : public UUserWidget
 public:
 	// UUserWidget 初始化回调。这里用于在控件创建后生成网格。
 	virtual void NativeOnInitialized() override;//特殊的初始化函数
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	
 	// 返回该网格负责显示的物品分类，例如装备、消耗品或材料。
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; }
@@ -113,10 +116,23 @@ private:
 	void OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex, const FPointerEvent& MouseEvent);
 	bool IsRightClick(const FPointerEvent& MouseEvent) const;
 	bool IsLeftClick(const FPointerEvent& MouseEvent) const;
+	
 	void PickUpBagItem(UInv_BagItem* ClickedBagItem, const int32 GridIndex);
 	void AssignHoverItem(UInv_BagItem* BagItem);										//创建悬停物品图标并绑定 BagItem
 	void AssignHoverItem(UInv_BagItem* BagItem, const int32 GridIndex, const int32 PreviousGridIndex);
 	void RemoveItemFromGrid(UInv_BagItem* InventoryItem, const int32 GridIndex);
+	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);//更新格子参数，主要是格子坐标和格子下标
+	FIntPoint CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const;
+	EInv_TileQuadrant CalculateTileQuadrant(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const;
+	void OnTileParametersUpdated(const FInv_TileParameters& Parameters);
+	FIntPoint CalculateStartingCoordinate(const FIntPoint& Coordinate, const FIntPoint& Dimensions, const EInv_TileQuadrant Quadrant) const;
+	FInv_SpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions);
+	// 检测鼠标是否在这一帧刚从 Canvas 内移动到 Canvas 外。
+	bool CursorExitedCanvas(const FVector2D& BoundaryPos, const FVector2D& BoundarySize, const FVector2D& Location);
+	void HighlightSlots(const int32 Index, const FIntPoint& Dimensions);
+	void UnHighlightSlots(const int32 Index, const FIntPoint& Dimensions);
+	// 将指定矩形区域根据格子状态GridSlotState切换为对应高亮状态，并记录为最新高亮区域。
+	void ChangeHoverType(const int32 Index, const FIntPoint& Dimensions, EInv_GridSlotState GridSlotState);
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UInv_HoverItem> HoverItemClass;
@@ -124,6 +140,15 @@ private:
 	UPROPERTY()
 	TObjectPtr<UInv_HoverItem> HoverItem;
 
+	FInv_TileParameters TileParameters;//当前格子参数
+	FInv_TileParameters LastTileParameters;//上个格子参数
+	
+	int32 ItemDropIndex{INDEX_NONE};//鼠标放置物品的落点（左上角下标），鼠标拖动物品时算高亮格子时记下的
+	FInv_SpaceQueryResult CurrentQueryResult;//当前鼠标悬停的格子查询结果
+	bool bMouseWithinCanvas;     // 鼠标这一帧是否位于 Canvas 内
+	bool bLastMouseWithinCanvas; // 鼠标上一帧是否位于 Canvas 内，用于识别退出瞬间
+	int32 LastHighlightedIndex;
+	FIntPoint LastHighlightedDimensions;
 	/*  */
 	// 画布，主要是渲染格子GridSlot以及物品图标SlottedItem
 	UPROPERTY(meta = (BindWidget))

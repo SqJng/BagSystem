@@ -63,3 +63,60 @@ struct FInv_SlotAvailabilityResult
 	bool bStackable{false};//能不能堆叠
 	TArray<FInv_SlotAvailability> SlotAvailabilities;//单个格子的可用空间结果。
 };
+
+/**
+ * 格子四个象限
+ */
+UENUM(BlueprintType)
+enum class EInv_TileQuadrant : uint8
+{
+	TopLeft,
+	TopRight,
+	BottomLeft,
+	BottomRight,
+	None
+};
+/**
+ * 鼠标位置结构体，用于鼠标移动时，实时记录鼠标位置 来帮助计算哪些格子高亮
+ *
+ * TileCoordinats 格子坐标
+ *
+ * TileIndex 格子下标
+ *
+ * TileQuadrant 格子象限
+ */
+USTRUCT(BlueprintType)
+struct FInv_TileParameters
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inventory")
+	FIntPoint TileCoordinats{};//鼠标的坐标
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inventory")
+	int32 TileIndex{INDEX_NONE};//鼠标在哪个格子
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inventory")
+	EInv_TileQuadrant TileQuadrant{EInv_TileQuadrant::None};//鼠标在哪个象限
+};
+
+inline bool operator==(const FInv_TileParameters& A, const FInv_TileParameters& B)
+{
+	return A.TileCoordinats == B.TileCoordinats && A.TileIndex == B.TileIndex && A.TileQuadrant == B.TileQuadrant;
+}
+
+// 鼠标拖动物品时，检查鼠标悬停的格子是否有足够空间放置物品的结果
+USTRUCT()
+struct FInv_SpaceQueryResult
+{
+	GENERATED_BODY()
+
+	// 有空间吗？
+	bool bHasSpace{false};
+
+	// 放的啥
+	TWeakObjectPtr<UInv_BagItem> ValidItem = nullptr;
+
+	// 
+	int32 UpperLeftIndex{INDEX_NONE};
+};

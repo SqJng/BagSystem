@@ -3,6 +3,7 @@
 
 #include "Widgets/Bag/Spatial/Inv_BagGrid.h"
 
+#include "BagSystem.h"
 #include "BagManagement/Components/Inv_BagComponent.h"
 #include "BagManagement/Utils/Inv_BagStatics.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -25,6 +26,151 @@ void UInv_BagGrid::NativeOnInitialized()
 	BagComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem);
 	BagComponent->OnStackChange.AddDynamic(this, &ThisClass::AddStacks);//触发BagGrid的AddStacks()
 }
+//每帧更新鼠标坐标
+void UInv_BagGrid::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	const FVector2D CanvasPosition = UInv_WidgetUtils::GetWidgetPosition(CanvasPanel);
+	const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer());
+
+	// 判断鼠标是否刚刚从 Canvas 内移动到 Canvas 外，如果是，则不再更新格子参数。
+	if (CursorExitedCanvas(CanvasPosition, UInv_WidgetUtils::GetWidgetSize(CanvasPanel), MousePosition))
+	{
+		return;
+	}
+	else if (bMouseWithinCanvas)UpdateTileParameters(CanvasPosition, MousePosition);//实时更新鼠标位置的格子
+}
+
+bool UInv_BagGrid::CursorExitedCanvas(const FVector2D& CanvasPosition, const FVector2D& WidgetSize, const FVector2D& MousePos)
+{
+	// 先保存上一帧状态，再更新当前帧是否仍位于 Canvas 内。
+	bLastMouseWithinCanvas = bMouseWithinCanvas;
+	bMouseWithinCanvas = UInv_WidgetUtils::IsWithinBounds(CanvasPosition, WidgetSize, MousePos);
+
+	// 只有“上一帧在内、这一帧在外”才表示刚刚退出；持续停在外面不会重复触发。
+	if (!bMouseWithinCanvas && bLastMouseWithinCanvas)
+	{
+		// TODO: 在这里取消鼠标离开前高亮的格子。
+		UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
+		return true;
+	}
+	return false;
+}
+
+void UInv_BagGrid::UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition)
+{
+	const FIntPoint HoveredTileCoordinates = CalculateHoveredCoordinates(CanvasPosition, MousePosition);//计算鼠标在画布上的相对坐标
+	//计算鼠标位置结构体
+	LastTileParameters = TileParameters;
+	TileParameters.TileCoordinats = HoveredTileCoordinates;
+	TileParameters.TileIndex = UInv_WidgetUtils::GetIndexFromPosition(HoveredTileCoordinates, Columns);
+	TileParameters.TileQuadrant = CalculateTileQuadrant(CanvasPosition, MousePosition);//象限
+	OnTileParametersUpdated(TileParameters);
+}
+
+void UInv_BagGrid::OnTileParametersUpdated(const FInv_TileParameters& Parameters)
+{
+	// 获取悬停元素的尺寸
+	// 计算高亮起始坐标
+	// 检查悬停位置
+	// 是否在网格范围内？
+	// 是否有其他元素阻挡？
+	// 若有阻挡，是否仅有单个阻挡元素？（是否可执行交换？）
+	if (!IsValid(HoverItem)) return;
+	const FIntPoint Dimensions = HoverItem->GetGridDimensions();//FIntPoint是{X，Y}
+	const FIntPoint StartingCoordinate = CalculateStartingCoordinate(Parameters.TileCoordinats, Dimensions, Parameters.TileQuadrant);
+	ItemDropIndex = UInv_WidgetUtils::GetIndexFromPosition(StartingCoordinate, Columns);
+
+	CurrentQueryResult = CheckHoverPosition(StartingCoordinate, Dimensions);
+
+	if (CurrentQueryResult.bHasSpace)
+	{
+		HighlightSlots(ItemDropIndex, Dimensions);
+		return;
+	}
+	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
+
+	// 当前摆放区域放不下，但只与一个已有物品重叠时，将那个物品占用的整块区域标成灰色。
+	// UpperLeftIndex 是已有物品的左上角格子，先验证下标，避免从无效位置开始遍历 GridSlots。
+	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex))
+	{
+		// 查询结果只记录了重叠物品；它实际占用多少格，需要从该物品的 GridFragment 中读取。
+		const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(CurrentQueryResult.ValidItem.Get(), FragmentTags::GridFragment);
+		if (!GridFragment) return;
+
+		// 从已有物品左上角开始，把它覆盖的全部格子状态设为禁用，提示当前发生单物品冲突。
+		ChangeHoverType(CurrentQueryResult.UpperLeftIndex, GridFragment->GetGridSize(), EInv_GridSlotState::GrayedOut);
+	}
+}
+//找HoverItem左上角格子坐标
+FIntPoint UInv_BagGrid::CalculateStartingCoordinate(const FIntPoint& Coordinate, const FIntPoint& Dimensions, const EInv_TileQuadrant Quadrant) const
+{
+	const int32 HasEvenWidth = Dimensions.X % 2 == 0 ? 1 : 0;
+	const int32 HasEvenHeight = Dimensions.Y % 2 == 0 ? 1 : 0;
+
+	FIntPoint StartingCoord;
+	/* 起始位置=鼠标xy坐标-物品宽高的一半
+	 * 对于行方向，偶数时，位于格子左半边时，起始坐标不变；位于格子右半边时，起始坐标右移。
+	 *			 奇数时，不变
+	 * 对于列方向，偶数时，位于格子上半边时，起始坐标不变；位于格子下半边时，起始坐标下移。
+	 *			 奇数时，不变
+	 */
+	switch (Quadrant)
+	{
+		case EInv_TileQuadrant::TopLeft:
+			StartingCoord.X = Coordinate.X - FMath::FloorToInt(0.5f * Dimensions.X);
+			StartingCoord.Y = Coordinate.Y - FMath::FloorToInt(0.5f * Dimensions.Y);
+			break;
+		case EInv_TileQuadrant::TopRight:
+			StartingCoord.X = Coordinate.X - FMath::FloorToInt(0.5f * Dimensions.X) + HasEvenWidth;
+			StartingCoord.Y = Coordinate.Y - FMath::FloorToInt(0.5f * Dimensions.Y);
+			break;
+		case EInv_TileQuadrant::BottomLeft:
+			StartingCoord.X = Coordinate.X - FMath::FloorToInt(0.5f * Dimensions.X);
+			StartingCoord.Y = Coordinate.Y - FMath::FloorToInt(0.5f * Dimensions.Y) + HasEvenHeight;
+			break;
+		case EInv_TileQuadrant::BottomRight:
+			StartingCoord.X = Coordinate.X - FMath::FloorToInt(0.5f * Dimensions.X) + HasEvenWidth;
+			StartingCoord.Y = Coordinate.Y - FMath::FloorToInt(0.5f * Dimensions.Y) + HasEvenHeight;
+			break;
+		default:
+			UE_LOG(BagSystem, Warning, TEXT("UInv_BagGrid::CalculateStartingCoordinate: Invalid quadrant."));
+		return FIntPoint(-1, -1);
+	}
+	return StartingCoord;
+}
+//Result里有是否有空间、格子里有啥物品（只能记一个）、物品左上角格子号
+FInv_SpaceQueryResult UInv_BagGrid::CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) 
+{
+	FInv_SpaceQueryResult Result;//
+	
+	if (!IsInGridBounds(UInv_WidgetUtils::GetIndexFromPosition(Position, Columns), Dimensions)) return Result;
+
+	Result.bHasSpace = true;
+	
+	// 遍历高亮范围，任意格子被占用就标记为没有空间
+	TSet<int32> OccupiedUpperLeftIndices;
+	UInv_BagStatics::ForEach2D(GridSlots, UInv_WidgetUtils::GetIndexFromPosition(Position, Columns), Dimensions, Columns, [&](const UInv_GridSlot* GridSlot)
+	{
+		if (GridSlot->GetBagItem().IsValid())
+		{
+			OccupiedUpperLeftIndices.Add(GridSlot->GetUpperLeftIndex());//把格子里有物品的左上角格子号都记下来
+			Result.bHasSpace = false;
+		}
+	});
+	
+	// 范围内只有一个物品，记下他的信息，后续可以尝试交换/合并
+	if (OccupiedUpperLeftIndices.Num() == 1) // single item at position - it's valid for swapping/combining
+	{
+		const int32 Index = *OccupiedUpperLeftIndices.CreateConstIterator();
+		Result.ValidItem = GridSlots[Index]->GetBagItem();
+		Result.UpperLeftIndex = GridSlots[Index]->GetUpperLeftIndex();
+	}
+
+	return Result;
+}
+
 //根据行列创建格子，设置格子号，把格子添加到画布并设置位置和大小
 void UInv_BagGrid::ConstructGrid()
 {
@@ -231,7 +377,7 @@ void UInv_BagGrid::PickUpBagItem(UInv_BagItem* ClickedBagItem, const int32 GridI
 {
 	AssignHoverItem(ClickedBagItem, GridIndex, GridIndex);
 	
-	// Remove clicked item from the grid
+	// 清空格子
 	RemoveItemFromGrid(ClickedBagItem, GridIndex);
 }
 
@@ -255,7 +401,7 @@ void UInv_BagGrid::AssignHoverItem(UInv_BagItem* BagItem)
 {
 	if (!IsValid(HoverItem))
 	{
-		HoverItem = CreateWidget<UInv_HoverItem>(GetOwningPlayer(), HoverItemClass);
+		HoverItem = CreateWidget<UInv_HoverItem>(GetOwningPlayer(), HoverItemClass);  // 悬停物品在鼠标点击后创建
 	}
 
 	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(BagItem, FragmentTags::GridFragment);
@@ -435,4 +581,90 @@ bool UInv_BagGrid::IsRightClick(const FPointerEvent& MouseEvent) const
 bool UInv_BagGrid::IsLeftClick(const FPointerEvent& MouseEvent) const
 {
 	return MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton;
+}
+
+
+FIntPoint UInv_BagGrid::CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const
+{
+	return FIntPoint{
+		static_cast<int32>(FMath::FloorToInt((MousePosition.X - CanvasPosition.X) / TileSize)),
+		static_cast<int32>(FMath::FloorToInt((MousePosition.Y - CanvasPosition.Y) / TileSize))
+	};
+}
+//鼠标在格子的哪一象限，边界处理成左上角象限
+EInv_TileQuadrant UInv_BagGrid::CalculateTileQuadrant(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const
+{//相对坐标%格子大小=>浮点数=>判断象限
+	const float TileLocalX = FMath::Fmod(MousePosition.X - CanvasPosition.X, TileSize);
+	const float TileLocalY = FMath::Fmod(MousePosition.Y - CanvasPosition.Y, TileSize);
+
+	// Determine which quadrant the mouse is in
+	const bool bIsTop = TileLocalY < TileSize / 2.f; // Top if Y is in the upper half
+	const bool bIsLeft = TileLocalX < TileSize / 2.f; // Left if X is in the left half
+
+	EInv_TileQuadrant HoveredTileQuadrant{EInv_TileQuadrant::None};
+	if (bIsTop && bIsLeft) HoveredTileQuadrant = EInv_TileQuadrant::TopLeft;
+	else if (bIsTop && !bIsLeft) HoveredTileQuadrant = EInv_TileQuadrant::TopRight;
+	else if (!bIsTop && bIsLeft) HoveredTileQuadrant = EInv_TileQuadrant::BottomLeft;
+	else if (!bIsTop && !bIsLeft) HoveredTileQuadrant = EInv_TileQuadrant::BottomRight;
+
+	return HoveredTileQuadrant;
+}
+
+
+void UInv_BagGrid::HighlightSlots(const int32 Index, const FIntPoint& Dimensions)
+{
+	if (!bMouseWithinCanvas) return;
+	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
+	UInv_BagStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [&](UInv_GridSlot* GridSlot)
+	{
+		GridSlot->SetOccupiedTexture();
+	});
+	LastHighlightedDimensions = Dimensions;
+	LastHighlightedIndex = Index;
+}
+
+void UInv_BagGrid::UnHighlightSlots(const int32 Index, const FIntPoint& Dimensions)
+{
+	UInv_BagStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [&](UInv_GridSlot* GridSlot)
+	{
+		if (GridSlot->IsAvailable())
+		{
+			GridSlot->SetUnoccupiedTexture();
+		}
+		else
+		{
+			GridSlot->SetOccupiedTexture();
+		}
+	});
+}
+
+void UInv_BagGrid::ChangeHoverType(const int32 Index, const FIntPoint& Dimensions, EInv_GridSlotState GridSlotState)
+{
+	// 先取消旧的高亮区域，再应用新的高亮区域
+	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
+
+	// Index 是区域左上角的一维下标，Dimensions 是宽高；ForEach2D 会遍历该矩形内的全部格子。
+	UInv_BagStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [State = GridSlotState](UInv_GridSlot* GridSlot)
+	{
+		// 同一个入口支持四种悬停显示状态，调用方只需要指定目标状态。
+		switch (State)
+		{
+		case EInv_GridSlotState::Occupied:
+			GridSlot->SetOccupiedTexture();
+			break;
+		case EInv_GridSlotState::Unoccupied:
+			GridSlot->SetUnoccupiedTexture();
+			break;
+		case EInv_GridSlotState::GrayedOut:
+			GridSlot->SetGrayedOutTexture();
+			break;
+		case EInv_GridSlotState::Selected:
+			GridSlot->SetSelectedTexture();
+			break;
+		}
+	});
+
+	// 记住本次改变的区域，下次切换悬停目标时可以先将它恢复。
+	LastHighlightedIndex = Index;
+	LastHighlightedDimensions = Dimensions;
 }
