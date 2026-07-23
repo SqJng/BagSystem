@@ -70,4 +70,5 @@ private:
 	//禁用按钮和切换页面的函数
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInv_BagGrid* Grid, UButton* Button);
+	TWeakObjectPtr<UInv_BagGrid> ActiveGrid;
 };

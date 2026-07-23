@@ -62,6 +62,9 @@
 
  void UInv_SpatialBag::SetActiveGrid(UInv_BagGrid* Grid, UButton* Button)
  {
+ 	//if (ActiveGrid.IsValid()) ActiveGrid->HideCursor();
+ 	ActiveGrid = Grid;
+ 	if (ActiveGrid.IsValid()) ActiveGrid->ShowCursor();
  	DisableButton(Button);
  	Switcher->SetActiveWidget(Grid);
  }

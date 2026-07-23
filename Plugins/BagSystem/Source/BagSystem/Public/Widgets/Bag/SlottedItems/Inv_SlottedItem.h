@@ -15,7 +15,7 @@ class UTextBlock;
  *
  *	TObjectPtr<UImage> Image_Icon;图标
  *
- *	TObjectPtr<UTextBlock> Text_StackCount 该物品每个格子各叠了多少个
+ *	TObjectPtr<UTextBlock> Text_StackCount 该物品每个格子各叠了多少个，数量的表现层，在GridSlot里的是逻辑层
  *	
  *	int32 GridIndex;它放在哪个格子
  *	

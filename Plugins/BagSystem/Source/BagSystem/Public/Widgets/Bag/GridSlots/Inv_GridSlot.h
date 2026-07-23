@@ -9,6 +9,11 @@
 class UInv_BagItem;
 class UImage;
 
+// 格子只负责上报“哪个格子发生了什么鼠标事件”，具体背包逻辑交给 UInv_BagGrid 处理。
+// GridIndex 用于定位格子，MouseEvent 用于继续判断左右键等输入信息。
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGridSlotEvent, int32, GridIndex, const FPointerEvent&, MouseEvent);
+
+
 UENUM(BlueprintType)
 enum class EInv_GridSlotState : uint8
 {
@@ -29,6 +34,16 @@ class BAGSYSTEM_API UInv_GridSlot : public UUserWidget//UUserWidget里包含样�
 {
 	GENERATED_BODY()
 public:
+	// 将 UUserWidget 收到的鼠标事件转换为格子委托，供所属 BagGrid 统一监听。
+	virtual void NativeOnMouseEnter(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& MouseEvent) override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+
+	// 分别在点击、鼠标进入和鼠标离开当前格子时广播。
+	FGridSlotEvent GridSlotClicked;
+	FGridSlotEvent GridSlotHovered;
+	FGridSlotEvent GridSlotUnhovered;
+	
 	void SetTileIndex(int32 Index) { TileIndex = Index; }
 	int32 GetTileIndex() const { return TileIndex; }
 	EInv_GridSlotState GetGridSlotState() const { return GridSlotState; }
@@ -56,8 +71,8 @@ private:
 
 	int32 StackCount{0};//堆叠数，默认是0，空格子里是0
 	int32 UpperLeftIndex{INDEX_NONE};//当前格子所属物品占用的左上角的格子下标index，空格子里是INDEX_NONE
-	TWeakObjectPtr<UInv_BagItem> BagItem;//弱指针指向这个格子里是什么物品
-	bool bAvailable{true};//这个格子能不能放东西，默认能放
+	TWeakObjectPtr<UInv_BagItem> BagItem;
+	bool bAvailable{true};
 
 
 	

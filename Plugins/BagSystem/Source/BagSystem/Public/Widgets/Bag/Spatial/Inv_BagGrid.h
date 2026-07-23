@@ -51,6 +51,8 @@ public:
 	// 返回该网格负责显示的物品分类，例如装备、消耗品或材料。
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; }
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent);
+	void ShowCursor();
+	void HideCursor();
 
 
 	UFUNCTION()
@@ -110,12 +112,47 @@ private:
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);
 
-	/** 拖动物品图标逻辑
-	 */
+	// SlottedItem 点击事件：处理已经放入背包的物品。
 	UFUNCTION()
-	void OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex, const FPointerEvent& MouseEvent);
+	void OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex, const FPointerEvent& MouseEvent);// 图标被点 处理数据
+	bool IsSameStackable(const UInv_BagItem* ClickedBagItem) const;
+	void SwapWithHoverItem(UInv_BagItem* ClickedBagItem, const int32 GridIndex);
+	bool ShouldSwapStackCounts(const int32 RoomInClickedSlot, const int32 HoveredStackCount, const int32 MaxStackSize) const;// 点击处已满的情况
+	void SwapStackCounts(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 Index);
+	bool ShouldConsumeHoverItemStacks(const int32 HoveredStackCount, const int32 RoomInClickedSlot) const;// 点击处能全放下的情况
+	void ConsumeHoverItemStacks(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 Index);
+	bool ShouldFillInStack(const int32 RoomInClickedSlot, const int32 HoveredStackCount) const;// 点击处放不下的情况
+	void FillInStack(const int32 FillAmount, const int32 Remainder, const int32 Index);
+
+	
+	void PutDownOnIndex(const int32 Index);// 将当前 HoverItem 放到指定左上角格子，并结束拖拽状态。
+	
+	void ClearHoverItem();// 清理鼠标上的临时物品图标及其缓存数据。
+	//==========================显示隐藏背包专有鼠标=====================
+	UUserWidget* GetVisibleCursorWidget();
+	UUserWidget* GetHiddenCursorWidget();
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UUserWidget> VisibleCursorWidgetClass;
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UUserWidget> HiddenCursorWidgetClass;
+	UPROPERTY()
+	TObjectPtr<UUserWidget> VisibleCursorWidget;
+	UPROPERTY()
+	TObjectPtr<UUserWidget> HiddenCursorWidget;
+	
+	// ======================GridSlot 的三个鼠标委托的监听事件：空格子也能通过这些入口参与点击和悬停交互。======================
+	UFUNCTION()
+	void OnGridSlotClicked(int32 GridIndex, const FPointerEvent& MouseEvent);
+
+	UFUNCTION()
+	void OnGridSlotHovered(int32 GridIndex, const FPointerEvent& MouseEvent);
+
+	UFUNCTION()
+	void OnGridSlotUnhovered(int32 GridIndex, const FPointerEvent& MouseEvent);
+	// =====================================================================================================
 	bool IsRightClick(const FPointerEvent& MouseEvent) const;
 	bool IsLeftClick(const FPointerEvent& MouseEvent) const;
+	// =====================================================================================================
 	
 	void PickUpBagItem(UInv_BagItem* ClickedBagItem, const int32 GridIndex);
 	void AssignHoverItem(UInv_BagItem* BagItem);										//创建悬停物品图标并绑定 BagItem

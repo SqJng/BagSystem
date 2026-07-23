@@ -140,7 +140,7 @@ FIntPoint UInv_BagGrid::CalculateStartingCoordinate(const FIntPoint& Coordinate,
 	}
 	return StartingCoord;
 }
-//Result里有是否有空间、格子里有啥物品（只能记一个）、物品左上角格子号
+//返回Result的属性有：有无空间、格子里有啥物品（只能记一个）、物品左上角格子号
 FInv_SpaceQueryResult UInv_BagGrid::CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) 
 {
 	FInv_SpaceQueryResult Result;//
@@ -191,7 +191,117 @@ void UInv_BagGrid::ConstructGrid()
 			UCanvasPanelSlot* GridCPS = UWidgetLayoutLibrary::SlotAsCanvasSlot(GridSlot);
 			GridCPS->SetSize(FVector2D(TileSize));
 			GridCPS->SetPosition(TilePosition * TileSize);
+			// 每个 GridSlot 只广播鼠标事件；BagGrid 订阅后统一决定高亮、放置或物品交互。
+			GridSlot->GridSlotClicked.AddDynamic(this, &ThisClass::OnGridSlotClicked);
+			GridSlot->GridSlotHovered.AddDynamic(this, &ThisClass::OnGridSlotHovered);
+			GridSlot->GridSlotUnhovered.AddDynamic(this, &ThisClass::OnGridSlotUnhovered);
 		}
+	}
+}
+//鼠标拿着物品时的点击格子事件
+void UInv_BagGrid::OnGridSlotClicked(int32 GridIndex, const FPointerEvent& MouseEvent)
+{
+	// 鼠标上没有拿着物品时，点击格子不需要执行放置逻辑。
+	if (!IsValid(HoverItem)) return;
+	// 实际落点由悬停计算得到的 ItemDropIndex 决定，不直接使用鼠标命中的单格 GridIndex。
+	if (!GridSlots.IsValidIndex(ItemDropIndex)) return;
+
+	// 候选区域只有一种物品时；
+	// 后续章节会在这里继续实现交换或堆叠合并。
+	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex))
+	{
+		OnSlottedItemClicked_ThenDoSomethingInBagGrid(CurrentQueryResult.UpperLeftIndex, MouseEvent);
+		return;
+	}
+
+	// 没有冲突物品且候选左上角为空，说明可以进入“放到该下标”的分支。
+	auto GridSlot = GridSlots[ItemDropIndex];
+	if (!GridSlot->GetBagItem().IsValid())
+	{
+		PutDownOnIndex(ItemDropIndex);
+	}
+}
+
+void UInv_BagGrid::PutDownOnIndex(const int32 Index)
+{
+	AddItemAtIndex(HoverItem->GetBagItem(), Index, HoverItem->IsStackable(), HoverItem->GetStackCount());
+	UpdateGridSlots(HoverItem->GetBagItem(), Index, HoverItem->IsStackable(), HoverItem->GetStackCount());
+	ClearHoverItem();
+}
+
+void UInv_BagGrid::ClearHoverItem()
+{
+	if (!IsValid(HoverItem)) return;
+
+	// 清空 HoverItem 内部保存的物品、堆叠、原位置和图标，避免下次拖拽残留旧数据。
+	HoverItem->SetBagItem(nullptr);
+	HoverItem->SetIsStackable(false);
+	HoverItem->SetPreviousGridIndex(INDEX_NONE);
+	HoverItem->UpdateStackCount(0);
+	HoverItem->SetImageBrush(FSlateNoResource());
+
+	// HoverItem 是挂在鼠标上的临时控件，放置完成后从父级移除并释放引用。
+	HoverItem->RemoveFromParent();
+	HoverItem = nullptr;
+	
+	ShowCursor();//恢复鼠标
+}
+
+void UInv_BagGrid::ShowCursor()
+{
+	if (!IsValid(GetOwningPlayer())) return;
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, GetVisibleCursorWidget());
+}
+
+void UInv_BagGrid::HideCursor()
+{
+	if (!IsValid(GetOwningPlayer())) return;
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, GetHiddenCursorWidget());
+}
+
+UUserWidget* UInv_BagGrid::GetVisibleCursorWidget()
+{
+	if (!IsValid(GetOwningPlayer())) return nullptr;
+	if (!IsValid(VisibleCursorWidget))
+	{
+		VisibleCursorWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), VisibleCursorWidgetClass);
+	}
+	return VisibleCursorWidget;
+}
+
+UUserWidget* UInv_BagGrid::GetHiddenCursorWidget()
+{
+	if (!IsValid(GetOwningPlayer())) return nullptr;
+	if (!IsValid(HiddenCursorWidget))
+	{
+		HiddenCursorWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), HiddenCursorWidgetClass);
+	}
+	return HiddenCursorWidget;
+}
+
+void UInv_BagGrid::OnGridSlotHovered(int32 GridIndex, const FPointerEvent& MouseEvent)
+{
+	// 正在拖动物品时使用整块区域高亮，不能再让单个格子的悬停效果覆盖它。
+	if (IsValid(HoverItem)) return;
+
+	UInv_GridSlot* GridSlot = GridSlots[GridIndex];
+	// 没有拖动物品时，鼠标进入空格子，用 Occupied 纹理作为普通悬停提示。
+	if (GridSlot->IsAvailable())
+	{
+		GridSlot->SetOccupiedTexture();
+	}
+}
+
+void UInv_BagGrid::OnGridSlotUnhovered(int32 GridIndex, const FPointerEvent& MouseEvent)
+{
+	// 正在拖动物品时，区域高亮的恢复由 UnHighlightSlots 负责。
+	if (IsValid(HoverItem)) return;
+
+	UInv_GridSlot* GridSlot = GridSlots[GridIndex];
+	// 仅恢复空格子的纹理，避免把已有物品占用格子的显示错误地改为空闲。
+	if (GridSlot->IsAvailable())
+	{
+		GridSlot->SetUnoccupiedTexture();
 	}
 }
 
@@ -366,11 +476,124 @@ void UInv_BagGrid::OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex
 {
 	check(GridSlots.IsValidIndex(GridIndex));
 	UInv_BagItem* ClickedBagItem = GridSlots[GridIndex]->GetBagItem().Get();
-
+	//放在空格子
 	if (!IsValid(HoverItem) && IsLeftClick(MouseEvent))
 	{
 		PickUpBagItem(ClickedBagItem, GridIndex);
+		return;
 	}
+	//堆叠
+	if (IsSameStackable(ClickedBagItem))
+	{
+		const int32 ClickedStackCount = GridSlots[GridIndex]->GetStackCount();
+		const FInv_StackableFragment* StackableFragment = ClickedBagItem->GetItemManifest().GetFragmentOfType<FInv_StackableFragment>();
+		const int32 MaxStackSize = StackableFragment->GetMaxStackSize();
+		const int32 RoomInClickedSlot = MaxStackSize - ClickedStackCount;
+		const int32 HoveredStackCount = HoverItem->GetStackCount();
+		
+		if (ShouldSwapStackCounts(RoomInClickedSlot, HoveredStackCount, MaxStackSize))
+		{
+			SwapStackCounts(ClickedStackCount, HoveredStackCount, GridIndex);// HoveredStackCount < MaxStackSize是为了避免交换后超过最大堆叠数
+			return;
+		}
+		
+		if (ShouldConsumeHoverItemStacks(HoveredStackCount, RoomInClickedSlot))
+		{
+			ConsumeHoverItemStacks(ClickedStackCount, HoveredStackCount, GridIndex);
+			return;
+		}
+		
+		if (ShouldFillInStack(RoomInClickedSlot, HoveredStackCount))
+		{
+			FillInStack(RoomInClickedSlot, HoveredStackCount - RoomInClickedSlot, GridIndex);
+			return;
+		}
+		
+		if (RoomInClickedSlot == 0)
+		{
+			return;
+		}
+	}
+	// 点击处和悬停物不同，交换
+	SwapWithHoverItem(ClickedBagItem, GridIndex);
+}
+
+bool UInv_BagGrid::IsSameStackable(const UInv_BagItem* ClickedBagItem) const
+{
+	const bool bIsSameItem = ClickedBagItem == HoverItem->GetBagItem();
+	const bool bIsStackable = ClickedBagItem->IsStackable();
+	return bIsSameItem && bIsStackable && HoverItem->GetItemType().MatchesTagExact(ClickedBagItem->GetItemManifest().GetItemType());
+}
+
+void UInv_BagGrid::SwapWithHoverItem(UInv_BagItem* ClickedBagItem, const int32 GridIndex)
+{
+	if (!IsValid(HoverItem)) return;
+
+	UInv_BagItem* TempBagItem = HoverItem->GetBagItem();
+	const int32 TempStackCount = HoverItem->GetStackCount();
+	const bool bTempIsStackable = HoverItem->IsStackable();
+
+	// Keep the same previous grid index
+	AssignHoverItem(ClickedBagItem, GridIndex, HoverItem->GetPreviousGridIndex());
+	RemoveItemFromGrid(ClickedBagItem, GridIndex);
+	AddItemAtIndex(TempBagItem, ItemDropIndex, bTempIsStackable, TempStackCount);
+	UpdateGridSlots(TempBagItem, ItemDropIndex, bTempIsStackable, TempStackCount);
+}
+
+bool UInv_BagGrid::ShouldSwapStackCounts(const int32 RoomInClickedSlot, const int32 HoveredStackCount, const int32 MaxStackSize) const
+{
+	return RoomInClickedSlot == 0 && HoveredStackCount < MaxStackSize;
+}
+//交换点击处和悬停处的堆叠数，更新格子和物品图标的数量变量
+void UInv_BagGrid::SwapStackCounts(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 Index)
+{
+	UInv_GridSlot* GridSlot = GridSlots[Index];
+	GridSlot->SetStackCount(HoveredStackCount);
+
+	UInv_SlottedItem* ClickedSlottedItem = SlottedItems.FindChecked(Index);
+	ClickedSlottedItem->UpdateStackCount(HoveredStackCount);
+
+	HoverItem->UpdateStackCount(ClickedStackCount);
+}
+
+bool UInv_BagGrid::ShouldConsumeHoverItemStacks(const int32 HoveredStackCount, const int32 RoomInClickedSlot) const
+{
+	// 点击格子的剩余容量足够时，鼠标上的整堆物品都可以合并进去。
+	return RoomInClickedSlot >= HoveredStackCount;
+}
+
+void UInv_BagGrid::ConsumeHoverItemStacks(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 Index)
+{
+	// 把鼠标上的全部数量转移到点击格子，并同步格子数据和显示图标。
+	const int32 NewClickedStackCount = ClickedStackCount + HoveredStackCount;
+	GridSlots[Index]->SetStackCount(NewClickedStackCount);
+	SlottedItems.FindChecked(Index)->UpdateStackCount(NewClickedStackCount);
+
+	// 鼠标上的数量已经全部被消耗，结束拖拽状态。
+	ClearHoverItem();
+
+	// 合并后重新高亮该物品实际占用的区域；没有 GridFragment 时按 1x1 处理。
+	const FInv_GridFragment* GridFragment = GridSlots[Index]->GetBagItem()->GetItemManifest().GetFragmentOfType<FInv_GridFragment>();
+	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1, 1);
+	HighlightSlots(Index, Dimensions);
+}
+
+bool UInv_BagGrid::ShouldFillInStack(const int32 RoomInClickedSlot, const int32 HoveredStackCount) const
+{
+	// 还有剩余容量但装不下整堆时，只把点击格子补满；容量为 0 交给“格子已满”分支处理。
+	return RoomInClickedSlot > 0 && RoomInClickedSlot < HoveredStackCount;
+}
+
+void UInv_BagGrid::FillInStack(const int32 FillAmount, const int32 Remainder, const int32 Index)
+{
+	// 点击格子增加可容纳的数量，并同步对应 SlottedItem 的数字显示。
+	UInv_GridSlot* GridSlot = GridSlots[Index];
+	const int32 NewStackCount = GridSlot->GetStackCount() + FillAmount;
+	GridSlot->SetStackCount(NewStackCount);
+	SlottedItems.FindChecked(Index)->UpdateStackCount(NewStackCount);
+
+	// 装不下的剩余数量继续保留在鼠标上，玩家还可以放到其他格子。
+	HoverItem->UpdateStackCount(Remainder);
 }
 
 void UInv_BagGrid::PickUpBagItem(UInv_BagItem* ClickedBagItem, const int32 GridIndex)

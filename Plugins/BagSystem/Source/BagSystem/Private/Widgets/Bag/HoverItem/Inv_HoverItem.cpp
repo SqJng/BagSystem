@@ -12,15 +12,19 @@ void UInv_HoverItem::SetImageBrush(const FSlateBrush& Brush) const
 	Image_Icon->SetBrush(Brush);
 }
 
-void UInv_HoverItem::UpdateStackCount(const int32 Count) const
-{
+void UInv_HoverItem::UpdateStackCount(const int32 Count)
+{//创建、销毁光标时调用
+	// 同时保存数据和刷新界面；后续 PutDownOnIndex 会从这里读取最终堆叠数量。
+	StackCount = Count;
 	if (Count > 0)
 	{
+		// 数量大于 0 才显示右下角数字，不可堆叠物品会隐藏该文本。
 		Text_StackCount->SetText(FText::AsNumber(Count));
 		Text_StackCount->SetVisibility(ESlateVisibility::Visible);
 	}
 	else
 	{
+		// 清零时折叠文本，避免空的数量标签占用视觉空间。
 		Text_StackCount->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }

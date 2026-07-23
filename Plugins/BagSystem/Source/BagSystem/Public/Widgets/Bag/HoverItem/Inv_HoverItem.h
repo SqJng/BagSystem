@@ -18,7 +18,8 @@ class BAGSYSTEM_API UInv_HoverItem : public UUserWidget
 	GENERATED_BODY()
 	public:
 	void SetImageBrush(const FSlateBrush& Brush) const;			//设置图标
-	void UpdateStackCount(const int32 Count) const;				//更新图标右下角的数量显示
+	// 更新悬停图标的数量显示，并同步保存数量供放置逻辑读取。
+	void UpdateStackCount(const int32 Count);
 
 	FGameplayTag GetItemType() const;
 	int32 GetStackCount() const { return StackCount; }			//获取数量
@@ -43,6 +44,6 @@ class BAGSYSTEM_API UInv_HoverItem : public UUserWidget
 	FIntPoint GridDimensions;//几乘几
 	TWeakObjectPtr<UInv_BagItem> BagItem;// 拿的物品
 	bool bIsStackable{false};
-	int32 StackCount{0};// 原来的数量
+	int32 StackCount{0};// 当前悬停物品要放回背包的堆叠数量
 
 };
