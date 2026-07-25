@@ -17,6 +17,7 @@
 #include "Widgets/Utils/Inv_WidgetUtils.h"
 #include "Widgets/Bag/SlottedItems/Inv_SlottedItem.h"
 #include "Widgets/Bag/HoverItem/Inv_HoverItem.h"
+#include "Widgets/ItemPopUp/Inv_ItemPopUp.h"
 
 void UInv_BagGrid::NativeOnInitialized()
 {
@@ -259,6 +260,11 @@ void UInv_BagGrid::HideCursor()
 	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, GetHiddenCursorWidget());
 }
 
+void UInv_BagGrid::SetOwningCanvas(UCanvasPanel* OwningCanvas)//只在UInv_SpatialBag里调用，初始化画布
+{
+	OwningCanvasPanel = OwningCanvas;
+}
+
 UUserWidget* UInv_BagGrid::GetVisibleCursorWidget()
 {
 	if (!IsValid(GetOwningPlayer())) return nullptr;
@@ -303,6 +309,39 @@ void UInv_BagGrid::OnGridSlotUnhovered(int32 GridIndex, const FPointerEvent& Mou
 	{
 		GridSlot->SetUnoccupiedTexture();
 	}
+}
+
+void UInv_BagGrid::OnPopUpMenuSplit(int32 SplitAmount, int32 Index)
+{
+	if (!GridSlots.IsValidIndex(Index)) return;
+
+	UInv_BagItem* RightClickedItem = GridSlots[Index]->GetBagItem().Get();
+	if (!IsValid(RightClickedItem)) return;
+	if (!RightClickedItem->IsStackable()) return;
+
+	const int32 UpperLeftIndex = GridSlots[Index]->GetUpperLeftIndex();
+	if (!GridSlots.IsValidIndex(UpperLeftIndex)) return;
+
+	UInv_GridSlot* UpperLeftGridSlot = GridSlots[UpperLeftIndex];
+	const int32 StackCount = UpperLeftGridSlot->GetStackCount();
+	if (StackCount <= 1) return;
+
+	SplitAmount = FMath::Clamp(SplitAmount, 1, StackCount - 1);
+	const int32 NewStackCount = StackCount - SplitAmount;
+
+	UpperLeftGridSlot->SetStackCount(NewStackCount);
+	SlottedItems.FindChecked(UpperLeftIndex)->UpdateStackCount(NewStackCount);
+
+	AssignHoverItem(RightClickedItem, UpperLeftIndex, UpperLeftIndex);
+	HoverItem->UpdateStackCount(SplitAmount);
+}
+
+void UInv_BagGrid::OnPopUpMenuDrop(int32 Index)
+{
+}
+
+void UInv_BagGrid::OnPopUpMenuConsume(int32 Index)
+{
 }
 
 //子背包判断有空
@@ -482,6 +521,14 @@ void UInv_BagGrid::OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex
 		PickUpBagItem(ClickedBagItem, GridIndex);
 		return;
 	}
+	
+	//弹窗
+	if(IsRightClick(MouseEvent))
+	{
+		CreateItemPopUp(GridIndex);
+		return;
+	}
+	
 	//堆叠
 	if (IsSameStackable(ClickedBagItem))
 	{
@@ -516,6 +563,55 @@ void UInv_BagGrid::OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex
 	}
 	// 点击处和悬停物不同，交换
 	SwapWithHoverItem(ClickedBagItem, GridIndex);
+}
+//生成弹窗
+void UInv_BagGrid::CreateItemPopUp(const int32 GridIndex)
+{
+	UInv_BagItem* RightClickedItem = GridSlots[GridIndex]->GetBagItem().Get();
+	if(!IsValid(RightClickedItem))return;
+	if (IsValid(ItemPopUp)) return;
+	//if (!ItemPopUpClass) return;
+
+	ItemPopUp = CreateWidget<UInv_ItemPopUp>(this, ItemPopUpClass);//自己在蓝图里给背包配置弹窗类WBP
+	//if (!IsValid(ItemPopUp)) return;
+	ItemPopUp->SetGridIndex(GridIndex);
+	ItemPopUp->OnNativeDestruct.AddUObject(this, &ThisClass::OnItemPopUpDestruct);
+	
+	OwningCanvasPanel->AddChild(ItemPopUp);//把弹窗添加到背包的画布上
+	UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(ItemPopUp);//这是画布的专门用来设置 位置 和 大小 的类
+	const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer());
+	CanvasSlot->SetPosition(MousePosition);
+	CanvasSlot->SetSize(ItemPopUp->GetBoxSize());
+
+	const int32 SliderMax = GridSlots[GridIndex]->GetStackCount() - 1;
+	if (RightClickedItem->IsStackable() && SliderMax > 0)
+	{
+		ItemPopUp->OnSplit.BindDynamic(this, &ThisClass::OnPopUpMenuSplit);
+		ItemPopUp->SetSliderParams(SliderMax, FMath::Max(1, GridSlots[GridIndex]->GetStackCount() / 2));
+	}
+	else
+	{
+		ItemPopUp->CollapseSplitButton();
+	}
+
+	ItemPopUp->OnDrop.BindDynamic(this, &ThisClass::OnPopUpMenuDrop);
+
+	if (RightClickedItem->IsConsumable())
+	{
+		ItemPopUp->OnConsume.BindDynamic(this, &ThisClass::OnPopUpMenuConsume);
+	}
+	else
+	{
+		ItemPopUp->CollapseConsumeButton();
+	}
+}
+
+void UInv_BagGrid::OnItemPopUpDestruct(UUserWidget* Menu)
+{
+	if (ItemPopUp == Menu)//防bug的
+	{
+		ItemPopUp = nullptr;
+	}
 }
 
 bool UInv_BagGrid::IsSameStackable(const UInv_BagItem* ClickedBagItem) const

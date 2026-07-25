@@ -6,6 +6,7 @@
 #include "Widgets/Bag/BagBase/Inv_BagBase.h"
 #include "Inv_SpatialBag.generated.h"
 
+class UCanvasPanel;
 class UInv_BagGrid;
 class UWidgetSwitcher;
 class UButton;
@@ -36,6 +37,9 @@ public:
 	
 	virtual FInv_SlotAvailabilityResult HasRoomForItem(UInv_ItemComponent* ItemComponent) const override;
 private:
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> CanvasPanel;//每个背包得有个画布
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWidgetSwitcher> Switcher;//切换器

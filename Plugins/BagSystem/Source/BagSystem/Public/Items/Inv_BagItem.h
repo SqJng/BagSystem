@@ -29,6 +29,7 @@ public:
 	const FInv_ItemManifest& GetItemManifest() const { return ItemManifest.Get<FInv_ItemManifest>(); }
 	FInv_ItemManifest& GetItemManifestMutable() { return ItemManifest.GetMutable<FInv_ItemManifest>(); }
 	bool IsStackable() const;
+	bool IsConsumable() const;
 	int32 GetTotalStackCount() const { return TotalStackCount; }
 	void SetTotalStackCount(int32 Count) { TotalStackCount = Count; }
 private:
@@ -48,7 +49,6 @@ const FragmentType* GetFragment(const UInv_BagItem* Item, const FGameplayTag& Ta
 	const FInv_ItemManifest& Manifest = Item->GetItemManifest();
 	return Manifest.GetFragmentOfTypeWithTag<FragmentType>(Tag);
 }
-
 
 
 

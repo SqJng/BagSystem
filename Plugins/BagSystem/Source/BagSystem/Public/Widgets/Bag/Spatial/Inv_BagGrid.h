@@ -9,6 +9,7 @@
 #include "Inv_BagGrid.generated.h"
 
 
+class UInv_ItemPopUp;
 // 这里只需要把枚举作为函数参数使用，前向声明可避免在头文件中额外包含 GridSlot 头文件。
 enum class EInv_GridSlotState : uint8;
 class UInv_HoverItem;
@@ -53,6 +54,7 @@ public:
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent);
 	void ShowCursor();
 	void HideCursor();
+	void SetOwningCanvas(UCanvasPanel* OwningCanvas);
 
 
 	UFUNCTION()
@@ -60,6 +62,7 @@ public:
 	
 private:
 	TWeakObjectPtr<UInv_BagComponent> BagComponent;
+	TWeakObjectPtr<UCanvasPanel> OwningCanvasPanel;
 
 	// 按 Rows * Columns 创建所有格子，并把它们摆放到 CanvasPanel 上。
 	void ConstructGrid();
@@ -115,6 +118,15 @@ private:
 	// SlottedItem 点击事件：处理已经放入背包的物品。
 	UFUNCTION()
 	void OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex, const FPointerEvent& MouseEvent);// 图标被点 处理数据
+	void CreateItemPopUp(const int32 GridIndex);
+	UFUNCTION()
+	void OnItemPopUpDestruct(UUserWidget* Menu);
+	UFUNCTION()
+	void OnPopUpMenuSplit(int32 SplitAmount, int32 Index);
+	UFUNCTION()
+	void OnPopUpMenuDrop(int32 Index);
+	UFUNCTION()
+	void OnPopUpMenuConsume(int32 Index);
 	bool IsSameStackable(const UInv_BagItem* ClickedBagItem) const;
 	void SwapWithHoverItem(UInv_BagItem* ClickedBagItem, const int32 GridIndex);
 	bool ShouldSwapStackCounts(const int32 RoomInClickedSlot, const int32 HoveredStackCount, const int32 MaxStackSize) const;// 点击处已满的情况
@@ -123,6 +135,13 @@ private:
 	void ConsumeHoverItemStacks(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 Index);
 	bool ShouldFillInStack(const int32 RoomInClickedSlot, const int32 HoveredStackCount) const;// 点击处放不下的情况
 	void FillInStack(const int32 FillAmount, const int32 Remainder, const int32 Index);
+
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UInv_ItemPopUp> ItemPopUpClass;
+
+	UPROPERTY()
+	TObjectPtr<UInv_ItemPopUp> ItemPopUp;
 
 	
 	void PutDownOnIndex(const int32 Index);// 将当前 HoverItem 放到指定左上角格子，并结束拖拽状态。

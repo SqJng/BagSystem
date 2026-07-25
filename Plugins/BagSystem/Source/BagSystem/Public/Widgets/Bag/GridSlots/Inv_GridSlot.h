@@ -57,7 +57,6 @@ public:
 	void SetUpperLeftIndex(int32 Index) { UpperLeftIndex = Index; }//设置占用这个格子的物品的左上角格子index
 	bool IsAvailable() const { return bAvailable; }//这个格子能不能放东西
 	void SetAvailable(bool bIsAvailable) { bAvailable = bIsAvailable; }//设置这个格子能不能放东西
-	
 	//设置4种背景图状态
 	void SetOccupiedTexture();
 	void SetUnoccupiedTexture();
@@ -87,4 +86,5 @@ private:
 	FSlateBrush Brush_Selected;
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FSlateBrush Brush_GrayedOut;
+
 };
