@@ -34,6 +34,7 @@ class BAGSYSTEM_API UInv_SpatialBag : public UInv_BagBase
 
 public:
 	virtual void NativeOnInitialized() override;//绑定按钮事件
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	
 	virtual FInv_SlotAvailabilityResult HasRoomForItem(UInv_ItemComponent* ItemComponent) const override;
 private:

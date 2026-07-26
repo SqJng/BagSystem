@@ -32,10 +32,12 @@ public:
 	UInv_ItemComponent();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	void InitItemManifest(const FInv_ItemManifest& CopyOfManifest);// 不引用，因为要即时的 Manifest信息
 	FInv_ItemManifest GetItemManifest() const { return ItemManifest; }
 
 	FString GetPickupMessage() const { return PickupMessage; }
 	void PickedUp();
+
 protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")

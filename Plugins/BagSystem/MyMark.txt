@@ -98,3 +98,12 @@
 5. 拆分滑块最多只能选择原数量减 1，默认选择约一半；滑块值转成整数后至少为 1，只有一个可选数量时锁住滑块，避免显示或提交拆分数量 0。
 6. 点击拆分后，BagGrid 根据弹窗保存的 GridIndex 找到物品左上角格子，将原堆叠数量减去拆分数量并同步 SlottedItem 显示，再创建携带拆出数量的 HoverItem 让玩家继续放置。
 7. 目前已完成右键弹窗的创建、关闭、操作显隐和堆叠拆分；Drop 与 Consume 已完成按钮及委托连接，但 OnPopUpMenuDrop 和 OnPopUpMenuConsume 仍为空，实际丢弃和使用逻辑尚未实现。
+
+===
+# 第十一章7.26
+
+完成背包物品的丢弃逻辑：
+1. 点击弹窗的 Drop 后，BagGrid 先通过 PickUpBagItem 把整堆物品转成 HoverItem 并清空原格子，再由 DropItem 把 BagItem 和丢弃数量发送给服务器，最后清理鼠标上的 HoverItem。
+2. Server_DropItem 根据 TotalStackCount 扣除丢弃数量；剩余数量为 0 时从 BagList 删除该物品，否则更新剩余总数，然后调用 SpawnDroppedItem 生成地面掉落物。
+3. SpawnDroppedItem 在玩家前方随机计算生成位置，把丢弃数量写入 ItemManifest 的 StackableFragment，再由 SpawnPickupActor 创建对应 Actor，并把清单复制到该 Actor 的 ItemComponent 中，这样拾取就包含数量
+4. 目前已完成整堆物品的丢弃、地面 Actor 生成及清单同步；OnPopUpMenuConsume 仍为空。当前 SpawnDroppedItem 通过引用直接修改 BagItem 的 Manifest，能够传递掉落数量，但也会改变原清单。

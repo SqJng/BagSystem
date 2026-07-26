@@ -82,6 +82,40 @@ void UInv_BagComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* Ite
 		OnItemAdded.Broadcast(NewItem);//传到
 	}
 }
+//服务器逻辑
+void UInv_BagComponent::Server_DropItem_Implementation(UInv_BagItem* Item, int32 StackCount)
+{
+	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
+	if (NewStackCount <= 0)
+	{
+		BagList.RemoveEntry(Item);
+	}
+	else
+	{
+		Item->SetTotalStackCount(NewStackCount);
+	}
+
+	SpawnDroppedItem(Item, StackCount);// 生成掉落物
+}
+
+void UInv_BagComponent::SpawnDroppedItem(UInv_BagItem* Item, int32 StackCount)
+{
+//在玩家前方一个范围内随机位置生成掉落物	
+	const APawn* OwningPawn = OwningController->GetPawn();
+	FVector RotatedForward = OwningPawn->GetActorForwardVector();
+	RotatedForward = RotatedForward.RotateAngleAxis(FMath::FRandRange(DropSpawnAngleMin, DropSpawnAngleMax), FVector::UpVector);
+	FVector SpawnLocation = OwningPawn->GetActorLocation() + RotatedForward * FMath::FRandRange(DropSpawnDistanceMin, DropSpawnDistanceMax);
+	SpawnLocation.Z -= RelativeSpawnElevation;
+	const FRotator SpawnRotation = FRotator::ZeroRotator;
+//拿到Item对应的清单，直接改数量（）	
+	FInv_ItemManifest& ItemManifest = Item->GetItemManifestMutable();
+	if (FInv_StackableFragment* StackableFragment = ItemManifest.GetFragmentOfTypeMutable<FInv_StackableFragment>())
+	{
+		StackableFragment->SetStackCount(StackCount);
+	}
+//按照这份清单复制一个新的掉落物Actor到世界里，清单也复制一份。但原来这份清单被污染了
+	ItemManifest.SpawnPickupActor(this, SpawnLocation, SpawnRotation);
+}
 //UObject不自带复制，所以写一个函数来把一些Object对象注册到背包组件的复制列表里，这样它们就能随着背包组件一起被复制了，客户端才能收到这些物品的变化并刷新UI
 void UInv_BagComponent::AddRepSubObj(UObject* SubObj)
 {

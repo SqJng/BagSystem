@@ -55,7 +55,8 @@ public:
 	void ShowCursor();
 	void HideCursor();
 	void SetOwningCanvas(UCanvasPanel* OwningCanvas);
-
+	void DropItem();//丢弃悬停物
+	
 
 	UFUNCTION()
 	void AddItem(UInv_BagItem* Item);
@@ -127,6 +128,7 @@ private:
 	void OnPopUpMenuDrop(int32 Index);
 	UFUNCTION()
 	void OnPopUpMenuConsume(int32 Index);
+	
 	bool IsSameStackable(const UInv_BagItem* ClickedBagItem) const;
 	void SwapWithHoverItem(UInv_BagItem* ClickedBagItem, const int32 GridIndex);
 	bool ShouldSwapStackCounts(const int32 RoomInClickedSlot, const int32 HoveredStackCount, const int32 MaxStackSize) const;// 点击处已满的情况

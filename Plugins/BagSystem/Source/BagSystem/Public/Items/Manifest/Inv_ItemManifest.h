@@ -39,6 +39,8 @@ struct BAGSYSTEM_API FInv_ItemManifest//物品清单/物品说明书，用来描
 	template<typename T> requires std::derived_from<T, FInv_ItemFragment>
 	T* GetFragmentOfTypeMutable();
 
+	void SpawnPickupActor(const UObject* WorldContextObject, const FVector& SpawnLocation, const FRotator& SpawnRotation);
+
 
 
 private:
@@ -51,6 +53,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FGameplayTag ItemType;//物品Tag，例如装备分类下的武器、护甲、饰品等
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<AActor> PickupActorClass;
 };
 
 //用Tag找片段

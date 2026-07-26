@@ -57,9 +57,13 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_AddNewItem(UInv_ItemComponent* ItemComponent, int32 StackCount);
 
+	UFUNCTION(Server, Reliable)
+	void Server_DropItem(UInv_BagItem* Item, int32 StackCount);
+
 	
 	void ToggleBagMenu();
 	void AddRepSubObj(UObject* SubObj);
+	void SpawnDroppedItem(UInv_BagItem* Item, int32 StackCount);
 //监听
 	FBagItemChange OnItemAdded;//在BagGrid初始化时绑定监听后触发的事件，参数是新增的物品 UInv_BagItem*
 	FBagItemChange OnItemRemoved;
@@ -88,4 +92,22 @@ private:
 	bool bBagMenuOpen;
 	void OpenBagMenu();
 	void CloseBagMenu();
+
+	//--------------------------------掉落物位置相关参数--------------------------------
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnAngleMin = -85.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnAngleMax = 85.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnDistanceMin = 50.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnDistanceMax = 100.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float RelativeSpawnElevation = 80.f;
+
+	//------------------------------------------------------------------------------
 };

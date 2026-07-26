@@ -314,7 +314,7 @@ void UInv_BagGrid::OnGridSlotUnhovered(int32 GridIndex, const FPointerEvent& Mou
 void UInv_BagGrid::OnPopUpMenuSplit(int32 SplitAmount, int32 Index)
 {
 	if (!GridSlots.IsValidIndex(Index)) return;
-
+//拿到右键物品左上角数量
 	UInv_BagItem* RightClickedItem = GridSlots[Index]->GetBagItem().Get();
 	if (!IsValid(RightClickedItem)) return;
 	if (!RightClickedItem->IsStackable()) return;
@@ -325,7 +325,7 @@ void UInv_BagGrid::OnPopUpMenuSplit(int32 SplitAmount, int32 Index)
 	UInv_GridSlot* UpperLeftGridSlot = GridSlots[UpperLeftIndex];
 	const int32 StackCount = UpperLeftGridSlot->GetStackCount();
 	if (StackCount <= 1) return;
-
+//更新BagItem堆叠数、更新HoverItem数量
 	SplitAmount = FMath::Clamp(SplitAmount, 1, StackCount - 1);
 	const int32 NewStackCount = StackCount - SplitAmount;
 
@@ -336,12 +336,29 @@ void UInv_BagGrid::OnPopUpMenuSplit(int32 SplitAmount, int32 Index)
 	HoverItem->UpdateStackCount(SplitAmount);
 }
 
-void UInv_BagGrid::OnPopUpMenuDrop(int32 Index)
+void UInv_BagGrid::OnPopUpMenuConsume(int32 Index)
 {
 }
 
-void UInv_BagGrid::OnPopUpMenuConsume(int32 Index)
+void UInv_BagGrid::OnPopUpMenuDrop(int32 Index)
 {
+	UInv_BagItem* RightClickedItem = GridSlots[Index]->GetBagItem().Get();
+	if (!IsValid(RightClickedItem)) return;
+
+	PickUpBagItem(RightClickedItem, Index);
+	DropItem();
+}
+//把悬停物丢到地上，告诉服务器丢掉物品
+void UInv_BagGrid::DropItem()
+{
+	if (!IsValid(HoverItem)) return;
+	if (!IsValid(HoverItem->GetBagItem())) return;
+
+	// 服务器
+	BagComponent->Server_DropItem(HoverItem->GetBagItem(), HoverItem->GetStackCount());
+	// 本地
+	ClearHoverItem();
+	ShowCursor();
 }
 
 //子背包判断有空
@@ -564,7 +581,7 @@ void UInv_BagGrid::OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex
 	// 点击处和悬停物不同，交换
 	SwapWithHoverItem(ClickedBagItem, GridIndex);
 }
-//生成弹窗
+//生成弹窗时，给弹窗按钮绑定委托等
 void UInv_BagGrid::CreateItemPopUp(const int32 GridIndex)
 {
 	UInv_BagItem* RightClickedItem = GridSlots[GridIndex]->GetBagItem().Get();
@@ -586,12 +603,12 @@ void UInv_BagGrid::CreateItemPopUp(const int32 GridIndex)
 	const int32 SliderMax = GridSlots[GridIndex]->GetStackCount() - 1;
 	if (RightClickedItem->IsStackable() && SliderMax > 0)
 	{
-		ItemPopUp->OnSplit.BindDynamic(this, &ThisClass::OnPopUpMenuSplit);
-		ItemPopUp->SetSliderParams(SliderMax, FMath::Max(1, GridSlots[GridIndex]->GetStackCount() / 2));
+		ItemPopUp->OnSplit.BindDynamic(this, &ThisClass::OnPopUpMenuSplit);//先绑委托
+		ItemPopUp->SetSliderParams(SliderMax, FMath::Max(1, GridSlots[GridIndex]->GetStackCount() / 2));//初始化滑块数量
 	}
 	else
 	{
-		ItemPopUp->CollapseSplitButton();
+		ItemPopUp->CollapseSplitButton();//隐藏按钮
 	}
 
 	ItemPopUp->OnDrop.BindDynamic(this, &ThisClass::OnPopUpMenuDrop);

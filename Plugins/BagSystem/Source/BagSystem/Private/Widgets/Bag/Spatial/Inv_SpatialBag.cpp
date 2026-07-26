@@ -25,6 +25,12 @@
  	ShowConsumables();
  }
 
+ FReply UInv_SpatialBag::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+ {
+ 	ActiveGrid->DropItem();
+ 	return FReply::Handled();//返回鼠标事件已结束
+ }
+
  FInv_SlotAvailabilityResult UInv_SpatialBag::HasRoomForItem(UInv_ItemComponent* ItemComponent) const
  {
  	switch (UInv_BagStatics::GetItemCategoryFromItemComp(ItemComponent))
