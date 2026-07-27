@@ -116,6 +116,25 @@ void UInv_BagComponent::SpawnDroppedItem(UInv_BagItem* Item, int32 StackCount)
 //按照这份清单复制一个新的掉落物Actor到世界里，清单也复制一份。但原来这份清单被污染了
 	ItemManifest.SpawnPickupActor(this, SpawnLocation, SpawnRotation);
 }
+
+void UInv_BagComponent::Server_ConsumeItem_Implementation(UInv_BagItem* Item)
+{
+	const int32 NewStackCount = Item->GetTotalStackCount() - 1;
+	if (NewStackCount <= 0)
+	{
+		BagList.RemoveEntry(Item);
+	}
+	else
+	{
+		Item->SetTotalStackCount(NewStackCount);
+	}
+
+	if (FInv_ConsumableFragment* ConsumableFragment = Item->GetItemManifestMutable().GetFragmentOfTypeMutable<FInv_ConsumableFragment>())
+	{
+		ConsumableFragment->OnConsume(OwningController.Get());
+	}
+}
+
 //UObject不自带复制，所以写一个函数来把一些Object对象注册到背包组件的复制列表里，这样它们就能随着背包组件一起被复制了，客户端才能收到这些物品的变化并刷新UI
 void UInv_BagComponent::AddRepSubObj(UObject* SubObj)
 {

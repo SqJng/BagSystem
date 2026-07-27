@@ -51,7 +51,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	EInv_ItemCategory ItemCategory{EInv_ItemCategory::None};//物品分类，默认 None
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (Categories="GameItems"))
 	FGameplayTag ItemType;//物品Tag，例如装备分类下的武器、护甲、饰品等
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")

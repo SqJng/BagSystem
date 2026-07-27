@@ -60,6 +60,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_DropItem(UInv_BagItem* Item, int32 StackCount);
 
+	UFUNCTION(Server, Reliable)
+	void Server_ConsumeItem(UInv_BagItem* Item);
 	
 	void ToggleBagMenu();
 	void AddRepSubObj(UObject* SubObj);

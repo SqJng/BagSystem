@@ -38,7 +38,7 @@ private:
 	FInstancedStruct ItemManifest;//在AddEntry(UInv_ItemComponent)时通过物品清单告诉BS放进去的Item对应什么BagItem。
 
 	UPROPERTY(Replicated)
-	int32 TotalStackCount{0};// 背包里这个物品的总数量，丢东西时判断用
+	int32 TotalStackCount{0};// 背包里这个物品的总数量，物品总数是BC关注的，BC不直接访问slot里的数量
 };
 
 template <typename FragmentType>

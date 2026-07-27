@@ -21,7 +21,7 @@ struct FInv_ItemFragment
 	void SetFragmentTag(FGameplayTag Tag) { FragmentTag = Tag; }
 private:
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (Categories="FragmentTags"))//meta将选项限制在FragmentTags里
 	FGameplayTag FragmentTag = FGameplayTag::EmptyTag;//这个片段是什么类型物品的片段
 };
 
@@ -80,6 +80,36 @@ private:
 	int32 StackCount{1};
 };
 
+
+USTRUCT(BlueprintType)
+struct FInv_ConsumableFragment  : public FInv_ItemFragment
+{
+	GENERATED_BODY()
+
+	virtual void OnConsume(APlayerController* PC) {} //这个片段仅作为基类
+};
+/*
+ * 每类可消耗物品似乎都要定义一个片段和各自的消耗函数
+ */
+USTRUCT(BlueprintType)
+struct FInv_HealthPotionFragment : public FInv_ConsumableFragment //血瓶
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Inventory") float HealAmount = 20.f;
+
+	virtual void OnConsume(APlayerController* PC) override;//连通ASC的接口，传什么参数自己改
+};
+
+USTRUCT(BlueprintType)
+struct FInv_ManaPotionFragment : public FInv_ConsumableFragment //蓝瓶
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Inventory") float ManaAmount = 20.f;
+
+	virtual void OnConsume(APlayerController* PC) override;
+};
 
 
 

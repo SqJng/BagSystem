@@ -337,7 +337,22 @@ void UInv_BagGrid::OnPopUpMenuSplit(int32 SplitAmount, int32 Index)
 }
 
 void UInv_BagGrid::OnPopUpMenuConsume(int32 Index)
-{
+{//点击处格子左上角格子改两个数量，改完再告诉服务区、再判断数量为0
+	UInv_BagItem* RightClickedItem = GridSlots[Index]->GetBagItem().Get();
+	if (!IsValid(RightClickedItem)) return;
+
+	const int32 UpperLeftIndex = GridSlots[Index]->GetUpperLeftIndex();
+	const int32 NewStackCount = GridSlots[UpperLeftIndex]->GetStackCount() - 1;
+
+	GridSlots[UpperLeftIndex]->SetStackCount(NewStackCount);
+	SlottedItems.FindChecked(UpperLeftIndex)->UpdateStackCount(NewStackCount);
+
+	BagComponent->Server_ConsumeItem(RightClickedItem);
+
+	if (NewStackCount <= 0)
+	{
+		RemoveItemFromGrid(RightClickedItem, Index);
+	}
 }
 
 void UInv_BagGrid::OnPopUpMenuDrop(int32 Index)
