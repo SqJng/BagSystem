@@ -6,6 +6,7 @@
 #include "Widgets/Bag/BagBase/Inv_BagBase.h"
 #include "Inv_SpatialBag.generated.h"
 
+class UInv_ItemDescription;
 class UCanvasPanel;
 class UInv_BagGrid;
 class UWidgetSwitcher;
@@ -37,6 +38,9 @@ public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	
 	virtual FInv_SlotAvailabilityResult HasRoomForItem(UInv_ItemComponent* ItemComponent) const override;
+	virtual void OnItemHovered(UInv_BagItem* Item) override;			// 延迟0.5s再显示物品详情，
+	virtual void OnItemUnHovered() override;							// 隐藏物品详情，销毁定时器
+	virtual bool HasHoverItem() const override;							// 有悬停物时不触发显示物品详情
 private:
 
 	UPROPERTY(meta = (BindWidget))
@@ -63,6 +67,21 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Button_Craftables;
+// 物品详情窗口类
+	UPROPERTY(EditAnywhere,Category="Inventory")
+	TSubclassOf<UInv_ItemDescription> ItemDescriptionClass;//物品详情的类
+
+	UPROPERTY()
+	TObjectPtr<UInv_ItemDescription> ItemDescription;//物品详情实例
+
+	FTimerHandle DescriptionTimer;			//悬停0.5s才显示物品详情
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DescriptionTimerDelay = 0.5f;
+
+	UInv_ItemDescription* GetItemDescription();
+
+	
 //三种分类按钮
 	UFUNCTION()
 	void ShowEquippables();

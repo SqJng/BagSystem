@@ -6,6 +6,7 @@
 
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "BagManagement/Utils/Inv_BagStatics.h"
 
 void UInv_SlottedItem::SetBagItem(UInv_BagItem* Item)
 {
@@ -16,6 +17,16 @@ FReply UInv_SlottedItem::NativeOnMouseButtonDown(const FGeometry& MyGeometry, co
 {
 	OnSlottedItemClicked.Broadcast(GridIndex, MouseEvent);//
 	return FReply::Handled();
+}
+
+void UInv_SlottedItem::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	UInv_BagStatics::ItemHovered(GetOwningPlayer(), BagItem.Get()); //无语非得写在BagStatics里
+}
+
+void UInv_SlottedItem::NativeOnMouseLeave(const FPointerEvent& MouseEvent)
+{
+	UInv_BagStatics::ItemUnhovered(GetOwningPlayer());
 }
 
 void UInv_SlottedItem::SetImageBrush(const FSlateBrush& Brush) const

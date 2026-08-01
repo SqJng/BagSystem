@@ -56,6 +56,7 @@ public:
 	void HideCursor();
 	void SetOwningCanvas(UCanvasPanel* OwningCanvas);
 	void DropItem();//丢弃悬停物
+	bool HasHoverItem() const;						// 用来判断什么时候显示物品详情，悬停物存在时不显示物品详情。
 	
 
 	UFUNCTION()
@@ -192,6 +193,7 @@ private:
 	// 将指定矩形区域根据格子状态GridSlotState切换为对应高亮状态，并记录为最新高亮区域。
 	void ChangeHoverType(const int32 Index, const FIntPoint& Dimensions, EInv_GridSlotState GridSlotState);
 
+//===============================================================================================================
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UInv_HoverItem> HoverItemClass;
 

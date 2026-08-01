@@ -8,6 +8,7 @@
 #include "Inv_BagBase.generated.h"
 
 class UInv_ItemComponent;
+class UInv_BagItem;
 /**
  * 背包菜单 UI 的基类，给 BagComponent 持有一个统一类型。
  *
@@ -30,4 +31,7 @@ class BAGSYSTEM_API UInv_BagBase : public UUserWidget
 	GENERATED_BODY()
 public:
 	virtual FInv_SlotAvailabilityResult HasRoomForItem(UInv_ItemComponent* ItemComponent) const { return FInv_SlotAvailabilityResult(); }
+	virtual void OnItemHovered(UInv_BagItem* Item) {}
+	virtual void OnItemUnHovered() {}
+	virtual bool HasHoverItem() const { return false; }
 };

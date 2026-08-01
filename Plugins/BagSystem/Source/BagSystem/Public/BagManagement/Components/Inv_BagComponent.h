@@ -66,6 +66,9 @@ public:
 	void ToggleBagMenu();
 	void AddRepSubObj(UObject* SubObj);
 	void SpawnDroppedItem(UInv_BagItem* Item, int32 StackCount);
+	UInv_BagBase* GetBagMenu() const { return BagMenu; }			// 获取子背包，这个项目里只有一个子背包
+
+	
 //监听
 	FBagItemChange OnItemAdded;//在BagGrid初始化时绑定监听后触发的事件，参数是新增的物品 UInv_BagItem*
 	FBagItemChange OnItemRemoved;

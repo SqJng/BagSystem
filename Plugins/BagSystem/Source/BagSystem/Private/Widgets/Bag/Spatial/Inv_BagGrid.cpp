@@ -376,6 +376,11 @@ void UInv_BagGrid::DropItem()
 	ShowCursor();
 }
 
+bool UInv_BagGrid::HasHoverItem() const
+{
+	return IsValid(HoverItem);
+}
+
 //子背包判断有空
 FInv_SlotAvailabilityResult UInv_BagGrid::HasRoomForItem(const UInv_ItemComponent* ItemComponent)
 {
@@ -545,6 +550,8 @@ UInv_SlottedItem* UInv_BagGrid::CreateSlottedItem(UInv_BagItem* Item, const bool
 //点击物品图标时触发的委托函数
 void UInv_BagGrid::OnSlottedItemClicked_ThenDoSomethingInBagGrid(int32 GridIndex, const FPointerEvent& MouseEvent)
 {
+	UInv_BagStatics::ItemUnhovered(GetOwningPlayer()); // 清除详情面板
+	
 	check(GridSlots.IsValidIndex(GridIndex));
 	UInv_BagItem* ClickedBagItem = GridSlots[GridIndex]->GetBagItem().Get();
 	//放在空格子

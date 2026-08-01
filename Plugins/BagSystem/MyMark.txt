@@ -115,3 +115,10 @@
 1. 物品分类为 Consumable 时，使用物品使数量减 1，并通知服务器处理这次使用。
 2. 本地数量减到 0 时通过 RemoveItemFromGrid 清空该物品占用的格子和图标；服务器也同步将 BagItem 的 TotalStackCount 减 1，数量归零则从 BagList 删除。
 3. 消耗效果由新增的消耗品片段 FInv_ConsumableFragment 的虚函数 OnConsume 承接，具体物品各自继承该片段 定义各自的数值、覆盖OnConsume()。此为ASC与BC的接口
+
+===
+# 第十三章8.2
+
+实现物品详情面板（Item Description）：
+1. 新增 用户界面类UInv_ItemDescription 详情面板，Inv_SlottedItem中增加 鼠标移入移出图标事件：会显示隐藏详情面板，面板固定在视口右侧
+ps：课程里每帧都设置面板跟随鼠标，我改了，看的时候从SlottedItem出发，主线很短

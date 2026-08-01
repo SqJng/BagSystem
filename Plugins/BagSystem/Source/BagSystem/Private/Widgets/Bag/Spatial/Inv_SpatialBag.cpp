@@ -8,7 +8,10 @@
 #include "BagSystem.h"
 #include "Components/WidgetSwitcher.h"
 #include "Widgets/Bag/Spatial/Inv_BagGrid.h"
-
+#include "Components/CanvasPanel.h"
+#include "Widgets/ItemDescription/Inv_ItemDescription.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/CanvasPanelSlot.h"
 
  void UInv_SpatialBag::NativeOnInitialized()
  {
@@ -31,6 +34,8 @@
  	return FReply::Handled();//返回鼠标事件已结束
  }
 
+
+
  FInv_SlotAvailabilityResult UInv_SpatialBag::HasRoomForItem(UInv_ItemComponent* ItemComponent) const
  {
  	switch (UInv_BagStatics::GetItemCategoryFromItemComp(ItemComponent))
@@ -45,6 +50,56 @@
  		UE_LOG(BagSystem, Error, TEXT("物品没有匹配的类别."))
  		return FInv_SlotAvailabilityResult();
  	}
+ }
+
+ void UInv_SpatialBag::OnItemHovered(UInv_BagItem* Item)
+ {
+ 	UInv_ItemDescription* DescriptionWidget = GetItemDescription();
+ 	DescriptionWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+ 	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(DescriptionTimer);
+
+ 	FTimerDelegate DescriptionTimerDelegate;
+ 	//创建定时器委托
+ 	DescriptionTimerDelegate.BindLambda([this]()
+	 {
+		 GetItemDescription()->SetVisibility(ESlateVisibility::HitTestInvisible);//可见但不参与鼠标事件
+	 });
+	//启用定时器
+ 	GetOwningPlayer()->GetWorldTimerManager().SetTimer(DescriptionTimer, DescriptionTimerDelegate, DescriptionTimerDelay, false);
+ }
+
+ void UInv_SpatialBag::OnItemUnHovered()
+ {
+ 	GetItemDescription()->SetVisibility(ESlateVisibility::Collapsed);
+ 	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(DescriptionTimer);
+ }
+
+ bool UInv_SpatialBag::HasHoverItem() const
+ {
+ 	if (Grid_Equippables->HasHoverItem()) return true;
+ 	if (Grid_Consumables->HasHoverItem()) return true;
+ 	if (Grid_Craftables->HasHoverItem()) return true;
+ 	return false;
+ }
+
+ UInv_ItemDescription* UInv_SpatialBag::GetItemDescription()
+ {
+ 	if (!IsValid(ItemDescription))
+ 	{
+ 		ItemDescription = CreateWidget<UInv_ItemDescription>(GetOwningPlayer(), ItemDescriptionClass);
+ 		CanvasPanel->AddChild(ItemDescription);
+
+ 		// 只设置一次：锚定 Canvas 右侧中央（前提：CanvasPanel 铺满整个游戏窗口）
+ 		if (UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(ItemDescription))
+ 		{
+ 			CanvasSlot->SetAnchors(FAnchors(1.f, 0.5f));	// 锚点：画布右侧中央
+ 			CanvasSlot->SetAlignment(FVector2D(1.f, 0.5f));	// 对齐：面板自身右侧中央
+ 			CanvasSlot->SetPosition(FVector2D(-20.f, 0.f));	// 距右边缘 20
+ 			CanvasSlot->SetAutoSize(true);					// 尺寸跟随内容，不用每帧 SetSize
+ 		}
+ 	}
+ 	return ItemDescription;
  }
 
  void UInv_SpatialBag::ShowEquippables()

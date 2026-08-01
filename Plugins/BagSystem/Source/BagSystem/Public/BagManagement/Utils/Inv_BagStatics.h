@@ -38,6 +38,12 @@ public:
 
 	template<typename T, typename FuncT>
 	static void ForEach2D(TArray<T>& Array, int32 Index, const FIntPoint& Range2D, int32 GridColumns, const FuncT& Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	static void ItemHovered(APlayerController* PC, UInv_BagItem* Item);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	static void ItemUnhovered(APlayerController* PC);
 };
 /**
  *传入函数指针Function，遍历以Index为起点，Range2D为范围的格子，执行Function函数。Array是格子数组，GridColumns是网格列数，用来计算格子坐标和格子号
